@@ -70,18 +70,21 @@ export class ProcessInspector {
     try {
       // Query comm and args separately: on macOS comm is a full path that may contain spaces
       // (e.g. "/Applications/Visual Studio Code.app/.../Code Helper (Plugin)").
-      const [{ stdout: comm }, { stdout: args }] = await Promise.all([
+      const [{ stdout: comm }, { stdout: args }, ppidRes] = await Promise.all([
         execAsync(`ps -p ${pid} -o comm=`, { timeout: 2000 }),
         execAsync(`ps -p ${pid} -o args=`, { timeout: 2000 }),
+        execAsync(`ps -p ${pid} -o ppid=`, { timeout: 2000 }).catch(() => ({ stdout: '' })),
       ]);
       const fullName = comm.trim();
       const name = fullName.split('/').pop() || fullName;
+      const rawPpid = parseInt(ppidRes.stdout.trim(), 10);
 
       return {
         pid,
         name: name || 'Unix Process',
         commandLine: args.trim() || undefined,
         cwd: await this.resolveUnixCwd(pid),
+        parentPid: Number.isInteger(rawPpid) && rawPpid > 0 ? rawPpid : undefined,
       };
     } catch {
       return { pid, name: 'Unix Process' };

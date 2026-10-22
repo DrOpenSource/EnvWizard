@@ -4,6 +4,7 @@ import { ProcessInspector } from '../core/ProcessInspector.js';
 import { ProcessTerminator, SafetyShieldError, isDatabaseProcess } from '../core/ProcessTerminator.js';
 import { PortInfo, ProcessDetails } from '../shared/types.js';
 import { translateError } from '../shared/glossary.js';
+import { politeUnjamPort } from './terminalShutdown.js';
 
 export function getWatchedPorts(): number[] {
   const configured = vscode.workspace.getConfiguration('envwizard').get<number[]>('watchedPorts');
@@ -124,7 +125,7 @@ export async function confirmAndUnjam(port: number, services: PortServices): Pro
     { location: vscode.ProgressLocation.Notification, title: `Freeing port ${port}…` },
     async () => {
       try {
-        const res = await services.terminator.unjamPort(port);
+        const res = await politeUnjamPort(port, services);
         services.cache.forget(info.pid);
         if (res.success) {
           vscode.window.showInformationMessage(`✨ ${res.message}`);
@@ -187,7 +188,7 @@ export async function cleanSlate(services: PortServices): Promise<void> {
     async () => {
       for (const p of targets) {
         try {
-          const res = await services.terminator.unjamPort(p.port);
+          const res = await politeUnjamPort(p.port, services);
           services.cache.forget(p.pid);
           if (res.success) freed++;
           else failures.push(res.message);

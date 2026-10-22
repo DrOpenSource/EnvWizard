@@ -157,7 +157,7 @@
 - [x] **8.P2** Feasibility spike: shell-integration output reading proven in real VS Code 1.120 (integration test).
 - [x] **8.P3** Integration test harness + CI job on Windows / macOS / Ubuntu; `engines.vscode` → `^1.93.0`.
 - [x] **8.0** Pro sales on hold until v0.2; $9.99 one-time personal license, no machine limit (decided 2026-10-22; see `docs/CLAIMS.md`).
-- [ ] **8.S1** Foundation: ownership classifier, polite stop via the owning terminal, Pro gating helper, Windows reserved ports.
+- [x] **8.S1** Foundation: ownership classifier, polite stop via the owning terminal, Pro gating helper, Windows reserved ports.
 - [ ] **8.1** Terminal `EADDRINUSE` detector via shell integration: toast "Free it & rerun" (Free).
 - [ ] **8.2** Zero-click auto-unjam + rerun for workspace-owned processes only (Pro).
 - [ ] **8.3** Project-aware Clean Slate (cwd / command line inside the workspace).
@@ -165,6 +165,6 @@
 - [ ] **8.5** `.env` snapshots before edits with 1-click restore (Pro).
 - [ ] **8.6** `.env.example` generator and value sanity checks (Free).
 - [ ] **8.7** Multi-root workspace env audits.
-- [ ] **8.8** Windows: real polite shutdown (Ctrl+C to the owning terminal or `GenerateConsoleCtrlEvent`).
+- [x] **8.8** Windows: real polite shutdown (Ctrl+C to the owning terminal or `GenerateConsoleCtrlEvent`).
 - [x] ~~**8.9** Enforce the 3-machine license limit~~: dropped (personal license, honour system).
 - [ ] **8.11** Launch: update `docs/CLAIMS.md` §4 → README/site/Gumroad from it → re-open Pro sales with 0.2.0.

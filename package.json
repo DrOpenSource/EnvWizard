@@ -117,6 +117,31 @@
           "minimum": 2,
           "default": 5,
           "description": "How often (in seconds) the status bar checks the watched ports."
+        },
+        "envwizard.terminalDetection": {
+          "type": "boolean",
+          "default": true,
+          "description": "Watch terminal commands and offer 1-click unjam when a dev server hits a port-in-use error."
+        },
+        "envwizard.autoUnjam": {
+          "type": "boolean",
+          "default": false,
+          "description": "(Pro) Automatically free port jams caused by previous runs of this project without asking."
+        },
+        "envwizard.envWatcher": {
+          "type": "boolean",
+          "default": false,
+          "description": "(Pro) Check for newly referenced environment variables when saving code files."
+        },
+        "envwizard.snapshots": {
+          "type": "boolean",
+          "default": false,
+          "description": "(Pro) Create encrypted local snapshots of .env files before edits and on save."
+        },
+        "envwizard.portRouter": {
+          "type": "boolean",
+          "default": false,
+          "description": "(Pro) Multi-Project Port Router: offer to rerun conflicting projects on an alternate port."
         }
       }
     }

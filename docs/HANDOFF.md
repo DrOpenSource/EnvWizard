@@ -64,7 +64,7 @@ Effort estimates are in **working sessions** (one focused session ≈ what was d
 | Step | Contents (see `V0.2_SPEC.md`) | Gate to move on | Est. |
 |---|---|---|---|
 | ✅ Groundwork | Jam detector (29 tests), shell-integration feasibility proven in real VS Code, integration harness + CI job, engines `^1.93` | Done | — |
-| **Sprint 1: Foundation** | Ownership classifier (this-terminal / this-project / other-project); polite stop via Ctrl+C to the owning terminal; Pro gating helper (opt-in, one-time notice); Windows reserved-port helper | Unit + integration tests green on 3 OSes | 1 |
+| ✅ **Sprint 1: Foundation** | Ownership classifier (`this-terminal` / `this-project` / `other-project`); polite stop via Ctrl+C to the owning terminal; Pro gating helper (opt-in, one-time notice); Windows reserved-port helper | Done (110 unit tests passing) | — |
 | **Sprint 2: F1 terminal alert (Free)** | "Port 3000 jam → Free & Rerun" toast; shifted-port (Vite/Next) notice; graceful degradation without shell integration; confirm each non-Node error message with a real run | An integration test reproduces jam → toast action → rerun binds the port | 1–2 |
 | **Sprint 3: F2 + F3** | Pro auto-unjam & rerun (opt-in, only own project/terminal); project-aware Clean Slate (multi-select) | Never touches other-project / DB / protected processes (tests) | 1–2 |
 | **Sprint 4: F4 + F5** | Pro live env watcher (per-file, debounced); Pro encrypted snapshots (AES-256-GCM, key in SecretStorage, restore with in-memory diff) | Snapshot round-trip and restore tests; no plaintext on disk | 2 |
@@ -92,6 +92,8 @@ Effort estimates are in **working sessions** (one focused session ≈ what was d
 ## 6. Next steps (pick up here)
 
 1. *(Owner)* Publish 0.1.3 and deploy the website (§1).
-2. Check out `v0.2` and merge `main` into it if it isn't up to date.
-3. Start **Sprint 1** from `V0.2_SPEC.md` §3: begin with `src/core/ProcessOwnership.ts` and its tests, then polite stop via the owning terminal.
-4. At the end of the session, tick boxes in `ROADMAP.md` and update §1 and §6 of this file.
+2. Start **Sprint 2: F1 terminal alert (Free)** from `V0.2_SPEC.md` §4:
+   - Hook `window.onDidStartTerminalShellExecution` in `src/extension/extension.ts` with `TerminalJamDetector`.
+   - Wire ownership classifier and show "Port jam → Free & Rerun" toast (with shifted-port notice for Vite/Next).
+   - Test end-to-end jam → toast action → rerun with an integration test.
+3. At the end of the session, tick boxes in `ROADMAP.md` and update §1 and §6 of this file.

@@ -9,7 +9,7 @@
     <title>EnvWizard — Safe Port Unjammer & Dev Env Guardian</title>
     <meta
       name="description"
-      content="Never google EADDRINUSE again. EnvWizard is a calm, intent-based port unjammer and .env auto-healer for Cursor, VS Code & Antigravity."
+      content="Never google EADDRINUSE again. EnvWizard is a calm port unjammer and .env checker for Cursor, VS Code & Antigravity."
     />
     <meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#111113" media="(prefers-color-scheme: dark)" />
@@ -19,11 +19,10 @@
     />
     <meta
       property="og:description"
-      content="1-click port unjammer and .env variable healer for vibe coders. Runs 100% offline."
+      content="See what is holding port 3000, free it safely in one click, and find the env variables your code is missing. Runs locally."
     />
     <link rel="icon" type="image/png" href="assets/icon.png" />
     <link rel="canonical" href="https://envwizard.taqnik.in" />
-    <script src="https://gumroad.com/js/gumroad.js"></script>
 
     <style>
       :root {
@@ -520,7 +519,7 @@
           Never google <span class="sheen">EADDRINUSE</span> again.
         </h1>
         <p class="lede">
-          EnvWizard silently detects jammed ports, evicts zombie dev servers with a protected safety shield, and auto-heals missing environment variables directly on file save.
+          EnvWizard shows what is holding your dev ports, frees them safely in one click, and finds the environment variables your code needs but your <code>.env</code> is missing.
         </p>
         <div class="hero-ctas">
           <a
@@ -529,13 +528,12 @@
             target="_blank"
           >Install for VS Code / Cursor</a>
           <a
-            class="btn btn-ghost gumroad-button"
-            href="https://kashyapster867.gumroad.com/l/envwizard"
-            target="_blank"
-          >Buy Pro for $9.99 ›</a>
+            class="btn btn-ghost"
+            href="#pricing"
+          >Pro is coming in v0.2 ›</a>
         </div>
         <p class="hero-meta">
-          Lifetime License · 100% Offline & Private · Zero Telemetry
+          Free forever · Runs locally · Zero telemetry
         </p>
 
         <!-- Interactive Mock Frame (macOS Style) -->
@@ -550,7 +548,7 @@
               <div class="m-title">
                 <span>🔌 EnvWizard Dev Deck</span>
               </div>
-              <div>Top 10 Ports</div>
+              <div>Port Radar</div>
             </div>
 
             <div class="m-body">
@@ -559,7 +557,7 @@
                   <span class="port-tag">3000</span>
                   <div class="radar-details">
                     <h4 id="port3000Title">Occupied by Node.js (PID 18420)</h4>
-                    <p id="port3000Path">cwd: ~/projects/old-next-app • 48 MB RAM</p>
+                    <p id="port3000Path">node … next dev • ~/projects/old-next-app</p>
                   </div>
                 </div>
                 <div style="display: flex; align-items: center; gap: 12px;">
@@ -577,7 +575,7 @@
                   <span class="port-tag">8080</span>
                   <div class="radar-details">
                     <h4>FastAPI Server (PID 9412)</h4>
-                    <p>cwd: ~/projects/current-api • 32 MB RAM</p>
+                    <p>uvicorn main:app • ~/projects/current-api</p>
                   </div>
                 </div>
                 <div>
@@ -591,7 +589,7 @@
                 <div class="radar-info">
                   <span class="port-tag">.env</span>
                   <div class="radar-details">
-                    <h4>AST Variable Health</h4>
+                    <h4>.env Health</h4>
                     <p>4 keys verified in .env • 0 missing</p>
                   </div>
                 </div>
@@ -618,20 +616,20 @@
         <div class="grid-3">
           <div class="card">
             <span class="card-icon">⚡</span>
-            <h3>Zero-Click Port Unjammer</h3>
-            <p>Automatically clears jammed background ports in under 50ms before your next run command crashes with <code>EADDRINUSE</code>.</p>
+            <h3>1-Click Port Unjammer</h3>
+            <p>Your dev server crashed with <code>EADDRINUSE</code>? See which program is holding the port and free it safely with one click. No terminal commands needed.</p>
           </div>
 
           <div class="card">
             <span class="card-icon">🧩</span>
-            <h3>AST AI-Variable Auto-Healer</h3>
-            <p>When Cursor or ChatGPT introduces new <code>process.env</code> or <code>os.getenv</code> calls, EnvWizard detects the code diff on save and offers 1-click template filling.</p>
+            <h3>Missing Secret Finder</h3>
+            <p>Finds the <code>process.env</code>, <code>import.meta.env</code> and <code>os.getenv</code> variables your code (or your AI assistant) uses that are missing or blank in <code>.env</code> / <code>.env.local</code>, and adds placeholders in one click.</p>
           </div>
 
           <div class="card">
             <span class="card-icon">🧹</span>
             <h3>1-Click Clean Slate</h3>
-            <p>Switching branches or projects? Flush all orphaned background development servers across all ports in a single click from the status bar.</p>
+            <p>Switching branches or projects? Stop leftover background dev servers on your watched ports in one click. Databases and protected programs are left alone.</p>
           </div>
         </div>
       </div>
@@ -649,22 +647,22 @@
           <div>
             <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 12px;">Protected Process Shield</h3>
             <p style="color: var(--ink-2); font-size: 0.92rem; margin-bottom: 20px; line-height: 1.55;">
-              Built-in kernel blacklist safeguards your system. EnvWizard will refuse to target OS window managers, IDE instances, or Docker containers under any circumstances.
+              EnvWizard always shows what is holding a port and asks before stopping anything. It refuses to stop programs on its protected list: your editor, Docker, WSL and system processes.
             </p>
             <ul class="shield-list">
-              <li><span class="shield-check">✓</span> Protected: <code>Code.exe</code>, <code>Cursor</code>, <code>dockerd</code>, <code>explorer.exe</code></li>
-              <li><span class="shield-check">✓</span> Graceful two-stage shutdown (polite signal $\rightarrow$ 800ms grace)</li>
+              <li><span class="shield-check">✓</span> Protected: <code>Code</code>, <code>Cursor</code>, Docker, WSL, <code>explorer.exe</code></li>
+              <li><span class="shield-check">✓</span> Polite stop first, force only if needed</li>
               <li><span class="shield-check">✓</span> Non-destructive: preserves existing <code>.env</code> formatting and comments</li>
             </ul>
           </div>
           <div>
-            <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 12px;">100% Offline & Private</h3>
+            <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 12px;">Local & Private</h3>
             <p style="color: var(--ink-2); font-size: 0.92rem; margin-bottom: 20px; line-height: 1.55;">
-              Runs strictly on your local machine using standard system sockets. Your API keys, code files, and environment values never leave your device.
+              Runs on your machine using standard system tools. Your API keys, code and environment values never leave your device.
             </p>
             <ul class="shield-list">
               <li><span class="shield-check">✓</span> Zero network telemetry</li>
-              <li><span class="shield-check">✓</span> Offline cryptographic license validation</li>
+              <li><span class="shield-check">✓</span> Only network request: a one-time Gumroad license check when you activate Pro</li>
               <li><span class="shield-check">✓</span> Zero analytics trackers</li>
             </ul>
           </div>
@@ -677,7 +675,7 @@
       <div class="wrap">
         <div class="section-head">
           <h2>Simple, Fair Pricing</h2>
-          <p>Zero subscriptions. Pay once, own it forever.</p>
+          <p>Free forever. Pro will be a one-time purchase. No subscriptions.</p>
         </div>
 
         <div class="pricing-grid">
@@ -688,9 +686,12 @@
             <div class="p-desc">Essential manual unjamming for every developer.</div>
             <ul class="p-features">
               <li><span class="p-check">✓</span> 1-Click manual port unjammer</li>
-              <li><span class="p-check">✓</span> Status bar port radar (Top 10 ports)</li>
+              <li><span class="p-check">✓</span> Status bar port radar (your choice of ports)</li>
               <li><span class="p-check">✓</span> Plain-English collision translations</li>
               <li><span class="p-check">✓</span> Protected Process Shield</li>
+              <li><span class="p-check">✓</span> 1-Click Clean Slate</li>
+              <li><span class="p-check">✓</span> Missing &amp; blank .env variable finder</li>
+              <li><span class="p-check">✓</span> .gitignore secret-leak check</li>
               <li><span class="p-check">✓</span> Zero ads, zero expiration</li>
             </ul>
             <a
@@ -703,24 +704,25 @@
 
           <!-- Pro Tier -->
           <div class="pricing-card featured">
-            <div class="p-badge">Lifetime Access</div>
-            <div class="p-plan">Pro Lifetime</div>
+            <div class="p-badge">Coming in v0.2</div>
+            <div class="p-plan">Pro</div>
             <div class="p-price">$9.99 <span>/ one-time</span></div>
-            <div class="p-desc">Autonomous protection for heavy vibe coders.</div>
+            <div class="p-desc">Hands-free extras for heavy vibe coders. Not on sale yet: sales open when v0.2 ships.</div>
             <ul class="p-features">
               <li><span class="p-check">✓</span> <strong>Everything in Free</strong></li>
-              <li><span class="p-check">✓</span> <strong>Zero-click background auto-unjam</strong></li>
-              <li><span class="p-check">✓</span> <strong>AST AI-variable auto-healer on save</strong></li>
-              <li><span class="p-check">✓</span> <strong>1-Click Clean Slate zombie flush</strong></li>
-              <li><span class="p-check">✓</span> <strong>Use on up to 3 personal machines</strong></li>
-              <li><span class="p-check">✓</span> <strong>Lifetime updates included</strong></li>
+              <li><span class="p-check">○</span> Auto-unjam &amp; rerun when your dev server hits a busy port (opt-in)</li>
+              <li><span class="p-check">○</span> Live .env watcher on save</li>
+              <li><span class="p-check">○</span> Encrypted local .env snapshots with 1-click restore</li>
+              <li><span class="p-check">○</span> Port router for multiple projects</li>
+              <li><span class="p-check">✓</span> Personal license for all your own machines</li>
+              <li><span class="p-check">✓</span> No subscription · 30-day refunds</li>
             </ul>
             <a
-              class="btn btn-primary gumroad-button"
+              class="btn btn-ghost"
               style="width: 100%;"
-              href="https://kashyapster867.gumroad.com/l/envwizard"
+              href="https://github.com/DrOpenSource/EnvWizard"
               target="_blank"
-            >⚡ Buy Pro — $9.99</a>
+            >Follow progress on GitHub</a>
           </div>
         </div>
       </div>
@@ -736,17 +738,17 @@
         <div class="faq-grid">
           <details>
             <summary>Does EnvWizard transmit any environment variables or code?</summary>
-            <p>No. EnvWizard operates completely offline. Port scanning uses native system commands (netstat, lsof, ss) and AST checks run locally in your editor process. Zero telemetry is collected.</p>
+            <p>No. Everything runs locally: port scanning uses native system commands (netstat, lsof, ss) and code checks run inside your editor. The only network request is a one-time license check with Gumroad when you activate Pro. Zero telemetry is collected.</p>
           </details>
 
           <details>
             <summary>How does the Pro License work?</summary>
-            <p>Pro is a $9.99 one-time purchase with no subscriptions. Each license allows activation on up to 3 personal developer machines (e.g. work laptop, home PC, desktop).</p>
+            <p>Pro launches with v0.2 as a $9.99 one-time purchase: a personal license for all your own machines that never expires, with 30-day refunds and no subscription. It is not on sale yet. Everything in the free version stays free.</p>
           </details>
 
           <details>
             <summary>Will it accidentally kill system daemons or Docker?</summary>
-            <p>No. The Protected Process Shield has an un-bypassable blacklist protecting Docker, operating system shells, window servers, and IDE instances. If an unrecognized process holds a port, EnvWizard shows an approval card before taking action.</p>
+            <p>EnvWizard always shows what is holding a port and asks first. It refuses to stop programs on its protected list (your editor, Docker, WSL relays and system processes), and Clean Slate leaves databases like Postgres and Redis alone.</p>
           </details>
 
           <details>
@@ -785,7 +787,7 @@
 
         setTimeout(() => {
           title.innerText = 'Port 3000 Released';
-          path.innerText = 'PID 18420 evicted politely in 42ms. Clean slate ready.';
+          path.innerText = 'Old server stopped. Port 3000 is ready for your app.';
           pill.className = 'status-pill pill-ok';
           pill.innerHTML = '<span class="pulse-dot"></span> Port Free';
           btn.innerText = '✓ Ready';

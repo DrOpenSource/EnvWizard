@@ -12,10 +12,12 @@ PLEASE READ THIS END USER LICENSE AGREEMENT ("AGREEMENT") CAREFULLY BEFORE DOWNL
 ### 1.1 Free Tier
 Dr. OpenSource grants you a revocable, non-exclusive, non-transferable, limited license to download, install, and use the free tier features of EnvWizard (including manual port detection and manual 1-click unjamming) for personal or commercial development purposes at no cost.
 
-### 1.2 Lifetime Pro License ($9.99 One-Time)
-Upon payment of the one-time $9.99 license fee via our authorized reseller (Gumroad), Dr. OpenSource grants you a perpetual, non-exclusive, non-transferable personal license to unlock all Pro features (including automated background daemon, AST AI-variable healing, and multi-project routing).
-- **Seat Allocation**: A single personal license allows activation on up to **three (3) individual development machines** owned and operated primarily by the designated license holder.
-- **No Recurring Fees**: The Pro license is a perpetual, one-time purchase with no subscription renewals.
+### 1.2 Pro Personal License (One-Time Purchase)
+Upon payment of the one-time Pro license fee via our authorized reseller (Gumroad), Dr. OpenSource grants you a perpetual, non-exclusive, non-transferable personal license to use the Pro features included in the versions of EnvWizard you install.
+- **Personal Use**: The license is for one person. You may use it on any number of machines that you personally use. It may not be shared with, or used by, other people or teams.
+- **No Recurring Fees**: The Pro license is a one-time purchase with no subscription renewals. The license does not expire.
+- **Updates**: Updates to Pro features are provided free of charge to license holders for as long as EnvWizard is maintained. No specific future feature or update schedule is guaranteed.
+- **Refunds**: Purchases can be refunded within 30 days through Gumroad.
 
 ---
 

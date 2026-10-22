@@ -10,7 +10,8 @@ import { StatusBarController } from './StatusBar.js';
 import { DevDeckViewProvider } from './DevDeckView.js';
 import { PortServices, ProcessDetailsCache, cleanSlate, confirmAndUnjam } from './actions.js';
 
-const PRODUCT_URL = 'https://envwizard.taqnik.in';
+// Pricing section of the website (Pro status and what's coming; see docs/CLAIMS.md)
+const PRODUCT_URL = 'https://envwizard.taqnik.in/#pricing';
 
 /**
  * The folder to audit: the one containing the active editor, otherwise the first workspace folder.
@@ -205,7 +206,7 @@ export async function activate(context: vscode.ExtensionContext) {
     })
   );
 
-  // Command: Activate License ($9.99 One-Time)
+  // Command: Activate Pro License
   context.subscriptions.push(
     vscode.commands.registerCommand('envwizard.activateLicense', async () => {
       const input = await vscode.window.showInputBox({
@@ -237,7 +238,7 @@ export async function activate(context: vscode.ExtensionContext) {
     })
   );
 
-  // Command: Buy License ($9.99 One-Time)
+  // Command: About EnvWizard Pro (opens the pricing page)
   context.subscriptions.push(
     vscode.commands.registerCommand('envwizard.buyLicense', async () => {
       await vscode.env.openExternal(vscode.Uri.parse(PRODUCT_URL));

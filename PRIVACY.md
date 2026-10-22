@@ -8,9 +8,9 @@ At **Dr. OpenSource**, we believe developer tools should operate with total tran
 
 ## 1. Zero Network Transmission of Secrets
 
-- **No Remote Calls for Environment Data**: EnvWizard inspects `.env` files and process memory **strictly locally on your computer**.
+- **No Remote Calls for Environment Data**: EnvWizard reads your `.env` files and the names and command lines of programs listening on your dev ports **strictly locally on your computer**.
 - **No Telemetry on Keys or Values**: Variable names (`STRIPE_KEY`, `OPENAI_API_KEY`) and their corresponding values are **never sent to any external server, analytics service, or third-party endpoint**.
-- **Local AST Scanning**: Parsing of code files (`.ts`, `.tsx`, `.py`, etc.) occurs entirely in memory within your local editor process.
+- **Local Code Scanning**: Pattern-matching of code files (`.ts`, `.tsx`, `.py`, etc.) occurs entirely in memory within your local editor process.
 
 ---
 
@@ -23,7 +23,7 @@ At **Dr. OpenSource**, we believe developer tools should operate with total tran
 
 ## 3. License Validation
 
-- **Pro License Key Verification**: If you choose to activate EnvWizard Pro ($9.99 One-Time Lifetime), the license key you paste is sent **once**, at activation, to Gumroad's license API (`api.gumroad.com`) to confirm the purchase. Nothing else (no code, ports, paths or `.env` contents) is included in that request.
+- **Pro License Key Verification**: If you choose to activate EnvWizard Pro (a one-time personal license), the license key you paste is sent **once**, at activation, to Gumroad's license API (`api.gumroad.com`) to confirm the purchase. Nothing else (no code, ports, paths or `.env` contents) is included in that request.
 - After activation your license key is stored in your editor's native secret storage (`vscode.ExtensionContext.secrets`) and Pro keeps working offline. It is never sent to any telemetry or analytics service.
 
 ---

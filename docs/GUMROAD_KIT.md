@@ -1,6 +1,6 @@
-# 🛍️ EnvWizard — Gumroad Listing & Fulfillment Kit
+# 🛍️ EnvWizard: Gumroad Listing & Fulfillment Kit
 
-Use this document to set up your product on Gumroad in 3 minutes.
+> **⏸ Do not publish yet.** Pro sales are on hold until v0.2 ships the Pro features (see [`CLAIMS.md`](CLAIMS.md)). This is the ready-to-paste listing for launch day. Before pasting, re-check that every Pro bullet below has actually shipped in the published version; remove any that haven't.
 
 ---
 
@@ -8,20 +8,20 @@ Use this document to set up your product on Gumroad in 3 minutes.
 
 | Field | Exact Value to Enter |
 | :--- | :--- |
-| **Product Name** | `EnvWizard Pro — Lifetime Developer License` |
+| **Product Name** | `EnvWizard Pro: Personal License` |
 | **Product Type** | `Digital product` |
 | **Price** | `$9.99` |
 | **Currency** | `USD ($)` |
 | **Custom URL Slug** | `envwizard` (Result: `https://kashyapster867.gumroad.com/l/envwizard`) |
-| **Cover Image** | Upload [`assets/gumroad_cover.jpg`](file:///c:/Users/user/Desktop/Dr_OpenSource/Projects/EnvWizard/assets/gumroad_cover.jpg) (16:9 1280×720) |
-| **Thumbnail Image** | Upload [`assets/gumroad_thumbnail.jpg`](file:///c:/Users/user/Desktop/Dr_OpenSource/Projects/EnvWizard/assets/gumroad_thumbnail.jpg) (1:1 600×600) |
+| **Cover Image** | Upload `assets/gumroad_cover.jpg` (16:9 1280×720). **Check the image text first:** it must not show features or claims that aren't shipped. |
+| **Thumbnail Image** | Upload `assets/gumroad_thumbnail.jpg` (1:1 600×600) |
 
 ---
 
 ## 2. Product Summary (One-Liner)
 
 ```text
-The 1-click port unjammer and dev environment guardian for Cursor, VS Code & Antigravity. Zero subscriptions. Own it forever.
+Hands-free extras for EnvWizard: auto-unjam & rerun, a live .env watcher and encrypted .env snapshots. $9.99 once, personal license, no subscription.
 ```
 
 ---
@@ -29,70 +29,68 @@ The 1-click port unjammer and dev environment guardian for Cursor, VS Code & Ant
 ## 3. Full Product Description (Copy & Paste into Gumroad)
 
 ```markdown
-### 🔌 Never Google EADDRINUSE Again.
+### 🔌 EnvWizard Pro
 
-Vibe coding with AI models (Cursor, Antigravity, Claude, ChatGPT) is fast—until local environments collide. You hit run and get:
+EnvWizard (free) shows what's holding your dev ports, frees them safely in one click, and finds the env variables your code needs but your `.env` is missing.
 
-> `Error: listen EADDRINUSE: address already in use :::3000`  
-> `TypeError: process.env.STRIPE_SECRET_KEY is undefined`
+**Pro adds the hands-free extras:**
 
-Instead of wasting 20 minutes hunting down rogue background PIDs with `lsof` or `netstat`, **EnvWizard gives you a calm, 1-click guardian right in your status bar.**
+- 🚦 **Auto-unjam & rerun**: when `npm run dev` fails because an old copy of the *same project* still holds the port, EnvWizard frees it and reruns your command. Opt-in, and it never touches other projects, databases, Docker or your editor.
+- 🧩 **Live .env watcher**: the moment you (or your AI assistant) save code that uses a new env variable, EnvWizard tells you it's missing and offers to add it.
+- 🔐 **Encrypted .env snapshots**: a local, encrypted copy of your `.env` before every change, with 1-click restore.
+- 🔀 **Port router**: run this project on another port when the usual one belongs to a different project.
 
----
-
-### ⚡ What You Get with Lifetime Pro ($9.99):
-
-- 🚦 **Zero-Click Background Auto-Unjam**: Silently detects when a port is jammed and clears it in 50ms before your build crashes.
-- 🧩 **AST AI-Variable Auto-Healer**: When your AI assistant adds new `process.env.VAR` or `import.meta.env.VAR` calls, EnvWizard detects the diff on file save and offers 1-click template filling.
-- 🪦 **Safe Zombie Buster**: Graceful two-stage shutdown (polite close -> hard evict only if stubborn) with a Protected Shield that never touches system daemons, Docker, or your IDE.
-- 🧹 **1-Click Clean Slate**: Wipe all background dev servers across all ports in one click when switching projects.
-- 💻 **Up to 3 Development Machines**: One personal license covers your work laptop, home PC, and secondary machine.
-- ♾️ **Zero Subscriptions**: Lifetime access with all future updates included.
+Everything in the free version stays free.
 
 ---
 
-### 🛡️ 100% Offline & Private
-EnvWizard inspects ports and `.env` files strictly on your local machine. **Zero telemetry. Zero network transmission of your API keys or secrets.**
+### 💳 Fair, simple licensing
+- **$9.99 once.** No subscription, no account.
+- **Personal license:** use it on all of your own machines. Please don't share it with other people or teams.
+- **Never expires.** Pro updates are included for as long as EnvWizard is maintained.
+- **30-day refunds**, no questions asked.
 
----
+### 🛡️ Private by design
+Everything runs locally. Your code, ports and `.env` values never leave your machine. The only network request is a one-time license check with Gumroad when you activate Pro.
 
-### 🚀 Instant Setup (Takes 30 Seconds)
-1. Install **EnvWizard** from the VS Code Marketplace or Cursor Extension tab.
-2. Press `Ctrl+Shift+P` (or `Cmd+Shift+P`) $\rightarrow$ Type: **`EnvWizard: Activate Pro License`**.
-3. Paste the license key received in your receipt email.
-4. Enjoy permanent, calm flow-state coding!
+### 🚀 Activate in 30 seconds
+1. Install **EnvWizard** from the VS Code Marketplace (or Open VSX for Cursor / Antigravity).
+2. Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) → **EnvWizard: Activate Pro License**.
+3. Paste the license key from your receipt.
+
+Support is best-effort via GitHub issues or support@taqnik.in.
 ```
 
 ---
 
 ## 4. Crucial Settings Checklist (Gumroad Dashboard)
 
-Under **Product Settings** $\rightarrow$ **Settings**:
-- [x] **"Generate a unique license key per sale"** $\rightarrow$ **CHECK THIS BOX ON** (Gumroad will automatically generate a license key for every buyer).
-- [x] **"Allow customers to choose a quantity"** $\rightarrow$ Leave OFF (quantity = 1).
-- [x] **"Mark as e-publication"** $\rightarrow$ OFF.
-- [x] **"Refund Policy"** $\rightarrow$ 30-day money-back guarantee (builds high buyer trust).
+Under **Product Settings** → **Settings**:
+- [ ] **"Generate a unique license key per sale"** → **ON** (the extension verifies these keys with Gumroad's license API).
+- [ ] **"Allow customers to choose a quantity"** → OFF (quantity = 1).
+- [ ] **"Mark as e-publication"** → OFF.
+- [ ] **Refund Policy** → 30-day refund.
+- [ ] Confirm the product ID still matches the one in `src/core/LicenseManager.ts` (`gumroadProductId`).
 
 ---
 
 ## 5. Receipt & Thank-You Note (Copy & Paste into Gumroad)
 
-Under **Checkout** $\rightarrow$ **Receipt** $\rightarrow$ **Thank you note**:
+Under **Checkout** → **Receipt** → **Thank you note**:
 
 ```markdown
 Thank you for supporting EnvWizard and independent developer tooling! 🔌
 
-Your Lifetime Pro License Key is displayed below and has also been emailed to you.
+Your license key is shown below and has also been emailed to you.
 
 HOW TO ACTIVATE IN VS CODE / CURSOR / ANTIGRAVITY:
-1. Open your editor (VS Code, Cursor, or Antigravity).
-2. Open the Command Palette: `Ctrl+Shift+P` (Windows/Linux) or `Cmd+Shift+P` (Mac).
-3. Type and select: `EnvWizard: Activate Pro License`
-4. Paste your Gumroad license key and hit Enter.
+1. Open the Command Palette: Ctrl+Shift+P (Windows/Linux) or Cmd+Shift+P (Mac).
+2. Run: EnvWizard: Activate Pro License
+3. Paste your license key and press Enter. (Activation needs internet once; Pro then works offline.)
 
-That's it! Your Pro Guardian is unlocked forever on up to 3 personal machines.
+It's a personal license: use it on all your own machines.
 
-If you ever need help or have questions, reach out at support@taqnik.in or open an issue on GitHub (https://github.com/DrOpenSource/EnvWizard).
+Need help? Open an issue at https://github.com/DrOpenSource/EnvWizard or email support@taqnik.in.
 
 Happy vibe coding! 🚀
 ```

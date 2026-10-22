@@ -1,8 +1,8 @@
 {
   "name": "envwizard",
   "displayName": "EnvWizard",
-  "description": "Port unjammer & dev environment guardian for vibe coders. 1-click unjam ports, kill zombie servers, and auto-heal missing .env variables.",
-  "version": "0.1.2",
+  "description": "Port unjammer & .env checker for vibe coders. See what is holding port 3000, free it safely in one click, and find env variables your code needs but your .env is missing.",
+  "version": "0.1.3",
   "publisher": "dr-opensource",
   "license": "MIT",
   "icon": "assets/icon.png",
@@ -58,12 +58,12 @@
       },
       {
         "command": "envwizard.activateLicense",
-        "title": "EnvWizard: Activate Pro License ($9.99 Lifetime)",
+        "title": "EnvWizard: Activate Pro License",
         "category": "EnvWizard"
       },
       {
         "command": "envwizard.buyLicense",
-        "title": "EnvWizard: Get Pro Lifetime License ($9.99)",
+        "title": "EnvWizard: About EnvWizard Pro (coming in v0.2)",
         "category": "EnvWizard"
       }
     ],

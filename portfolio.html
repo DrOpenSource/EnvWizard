@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vibe Coding Suite — Product & Monetization Matrix</title>
+  <meta name="description" content="Strategic roadmap, marketability analysis, and monetization plans for intent-based developer tools inspired by GitWizard.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0a0d14;
+      --card-bg: rgba(18, 24, 38, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-hover-border: rgba(99, 102, 241, 0.4);
+      --accent-primary: #6366f1;
+      --accent-glow: rgba(99, 102, 241, 0.25);
+      --accent-purple: #a855f7;
+      --accent-cyan: #06b6d4;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --text-main: #f3f4f6;
+      --text-muted: #94a3b8;
+      --text-sub: #cbd5e1;
+      --tag-bg: rgba(255, 255, 255, 0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(168, 85, 247, 0.1) 0%, transparent 45%);
+    }
+
+    .container {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+
+    /* Header & Hero */
+    header {
+      margin-bottom: 40px;
+      text-align: center;
+      position: relative;
+    }
+
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      padding: 6px 16px;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #818cf8;
+      margin-bottom: 16px;
+      backdrop-filter: blur(8px);
+    }
+
+    .badge-pill span.pulse {
+      width: 8px;
+      height: 8px;
+      background-color: #34d399;
+      border-radius: 50%;
+      box-shadow: 0 0 10px #34d399;
+    }
+
+    h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: clamp(2.2rem, 5vw, 3.4rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #ffffff 40%, #a5b4fc 80%, #c084fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      max-width: 780px;
+      margin: 0 auto 32px;
+    }
+
+    /* Metric Bar */
+    .metrics-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 40px;
+    }
+
+    .metric-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 20px;
+      text-align: left;
+      backdrop-filter: blur(12px);
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .metric-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--card-hover-border);
+    }
+
+    .metric-val {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 4px;
+    }
+
+    .metric-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Controls Bar */
+    .controls-panel {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      padding: 16px 20px;
+      border-radius: 16px;
+      margin-bottom: 24px;
+      backdrop-filter: blur(16px);
+    }
+
+    .filter-group {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .filter-btn {
+      background: var(--tag-bg);
+      color: var(--text-sub);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .filter-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+    }
+
+    .filter-btn.active {
+      background: var(--accent-primary);
+      color: #fff;
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 16px var(--accent-glow);
+    }
+
+    .view-toggle {
+      display: flex;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 10px;
+      padding: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .view-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .view-btn.active {
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+    }
+
+    /* Table Styling */
+    .table-container {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      overflow: hidden;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th {
+      background: rgba(12, 17, 29, 0.9);
+      padding: 18px 20px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #94a3b8;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    td {
+      padding: 22px 20px;
+      vertical-align: top;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 0.95rem;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .product-title {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      font-size: 1.15rem;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    .product-desc {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .platform-tag {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.07);
+      color: var(--text-sub);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .platform-tag.desktop {
+      background: rgba(6, 182, 212, 0.12);
+      color: #38bdf8;
+      border-color: rgba(6, 182, 212, 0.25);
+    }
+
+    .platform-tag.ide {
+      background: rgba(168, 85, 247, 0.12);
+      color: #c084fc;
+      border-color: rgba(168, 85, 247, 0.25);
+    }
+
+    .badge-pot {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .badge-pot.high {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .badge-pot.very-high {
+      background: rgba(99, 102, 241, 0.2);
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.4);
+    }
+
+    .badge-pot.medium {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .feature-highlight {
+      color: #f1f5f9;
+      font-weight: 600;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .feature-detail {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .price-model {
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    .price-model strong {
+      color: #fff;
+    }
+
+    .price-model ul {
+      margin-top: 6px;
+      padding-left: 18px;
+      color: var(--text-sub);
+      font-size: 0.82rem;
+    }
+
+    /* Grid View Alternative */
+    .grid-container {
+      display: none;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 24px;
+    }
+
+    .idea-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 24px;
+      backdrop-filter: blur(16px);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.25s ease;
+      position: relative;
+    }
+
+    .idea-card:hover {
+      border-color: var(--card-hover-border);
+      transform: translateY(-4px);
+      box-shadow: 0 16px 32px -10px var(--accent-glow);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .card-body {
+      flex: 1;
+    }
+
+    .section-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #64748b;
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+
+    .card-feature-box {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 14px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+    }
+
+    .card-monetization-box {
+      background: rgba(99, 102, 241, 0.06);
+      border: 1px solid rgba(99, 102, 241, 0.15);
+      padding: 14px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+    }
+
+    .card-footer {
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      padding-top: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* Repo Decision Advisory Section */
+    .advisory-box {
+      margin-top: 56px;
+      background: linear-gradient(145deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 24px;
+      padding: 36px;
+      backdrop-filter: blur(20px);
+      position: relative;
+    }
+
+    .advisory-box::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 10%;
+      right: 10%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #818cf8, transparent);
+    }
+
+    .advisory-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .advisory-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-top: 24px;
+    }
+
+    .decision-card {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 20px;
+      border-radius: 16px;
+    }
+
+    .decision-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .badge-sep {
+      background: rgba(16, 185, 129, 0.2);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+    }
+
+    .badge-mono {
+      background: rgba(245, 158, 11, 0.2);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.4);
+    }
+
+    .decision-card h4 {
+      color: #fff;
+      font-size: 1.05rem;
+      margin-bottom: 8px;
+    }
+
+    .decision-card p {
+      font-size: 0.88rem;
+      color: var(--text-sub);
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 60px;
+      text-align: center;
+      color: #64748b;
+      font-size: 0.85rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding-top: 30px;
+    }
+
+    @media (max-width: 900px) {
+      .table-container {
+        display: none;
+      }
+      .grid-container {
+        display: grid;
+      }
+      .view-toggle {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="badge-pill">
+        <span class="pulse"></span> DrOpenSource DevTools Lab
+      </div>
+      <h1>Beyond GitWizard</h1>
+      <p class="subtitle">
+        Intent-based cascade orchestration tools evaluated for marketability, monetization ceiling, and go-to-market speed in the vibe coding era.
+      </p>
+
+      <!-- Key Metrics Overview -->
+      <div class="metrics-bar">
+        <div class="metric-card">
+          <div class="metric-val">6</div>
+          <div class="metric-label">Identified Products</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-val">$8 - $79</div>
+          <div class="metric-label">Target Price Points</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-val">300+ Users</div>
+          <div class="metric-label">GitWizard Launchpad</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-val">#1 Pick</div>
+          <div class="metric-label">EnvWizard (Dev Doctor)</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Controls & Filters -->
+    <div class="controls-panel">
+      <div class="filter-group">
+        <span style="font-size: 0.85rem; color: #64748b; font-weight: 600;">Filter:</span>
+        <button class="filter-btn active" onclick="filterPlatform('all')">All Products</button>
+        <button class="filter-btn" onclick="filterPlatform('ide')">Editor Extensions</button>
+        <button class="filter-btn" onclick="filterPlatform('desktop')">Desktop (OS-Level)</button>
+        <button class="filter-btn" onclick="filterMonetization('high')">High Monetization Only</button>
+      </div>
+
+      <div class="view-toggle">
+        <button id="btnTable" class="view-btn active" onclick="setView('table')">Table View</button>
+        <button id="btnGrid" class="view-btn" onclick="setView('grid')">Card View</button>
+      </div>
+    </div>
+
+    <!-- Table View -->
+    <div id="tableView" class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 20%;">Product Idea</th>
+            <th style="width: 14%;">Platform</th>
+            <th style="width: 26%;">The #1 Standout "Hero" Feature</th>
+            <th style="width: 14%;">Monetization</th>
+            <th style="width: 26%;">Monetization Plan & Tiers</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <!-- Populated by JS -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Card Grid View -->
+    <div id="gridView" class="grid-container">
+      <!-- Populated by JS -->
+    </div>
+
+    <!-- Architectural Recommendation: Monorepo vs Multi-repo -->
+    <div class="advisory-box">
+      <div class="advisory-title">
+        <span>🏛️</span> Architectural Decision: Should these live in a new repo?
+      </div>
+      <p style="color: #cbd5e1; font-size: 0.95rem; line-height: 1.6;">
+        To maintain speed, clean marketplace identity, and zero regression risk to GitWizard's existing userbase, here is the recommended repository strategy:
+      </p>
+
+      <div class="advisory-grid">
+        <div class="decision-card">
+          <div class="decision-badge badge-sep">Recommended Strategy</div>
+          <h4>Independent Repositories per Product</h4>
+          <p>
+            • <strong>Marketplace Separation:</strong> Open VSX & VS Code Marketplace require isolated extension IDs and distinct publisher configurations.<br>
+            • <strong>Zero Bloat:</strong> GitWizard maintains a hyper-focused PRD (< 50 lines) and isolated CI tests. Mixing port management or packagers into GitWizard will bloat download size.<br>
+            • <strong>Individual Sale / Acquisition:</strong> Each tool can be monetized, licensed, or open-sourced independently without licensing entanglements.
+          </p>
+        </div>
+
+        <div class="decision-card">
+          <div class="decision-badge badge-mono">The Brand Synergy Play</div>
+          <h4>Unified "DrOpenSource" Organization</h4>
+          <p>
+            • Keep separate repos (e.g. <code>github.com/DrOpenSource/EnvWizard</code>, <code>GitWizard</code>, <code>DistroWizard</code>).<br>
+            • Cross-promote in the extension status bar: <em>"From DrOpenSource: Unjam your ports with EnvWizard"</em>.<br>
+            • Offer an all-in-one bundle pack (e.g. <strong>DrOpenSource Vibe Suite</strong>) down the line for single-license pricing.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      Crafted by <a href="https://www.linkedin.com/in/iamkashyaps" target="_blank" style="color: #a5b4fc; text-decoration: none;">Dr. Kashyap (Dr. OpenSource)</a> • <a href="https://www.linkedin.com/in/iamkashyaps" target="_blank" style="color: #94a3b8; text-decoration: none;">LinkedIn: @iamkashyaps</a> • GitWizard Ecosystem Blueprint • 2026
+    </footer>
+  </div>
+
+  <script>
+    const products = [
+      {
+        id: "envwizard",
+        name: "EnvWizard",
+        icon: "🔌",
+        category: "ide",
+        tag: "Port Unjammer & Dev Env Guardian",
+        platform: "VS Code / Cursor / Antigravity",
+        platformType: "ide",
+        heroFeature: "1-Click 'Unjam All Ports & Dev Servers'",
+        featureDetail: "Scans ports 3000/5173/8000/5432, safely kills zombie background processes, auto-heals missing .env variables from schema.",
+        potential: "High",
+        potentialClass: "high",
+        monetizationModel: "Freemium ($9.99 One-Time Lifetime)",
+        freeTier: "1-Click manual port unjam & basic .env health check",
+        proTier: "Auto-unjam daemon, AST AI-variable auto-healer, multi-project port routing",
+        gtm: "Extremely Viral: Every dev faces EADDRINUSE daily"
+      },
+      {
+        id: "shipwizard",
+        name: "ShipWizard",
+        icon: "🚀",
+        category: "ide",
+        tag: "The 'Get It Live' Pre-Flight Engine",
+        platform: "VS Code / Cursor / Antigravity",
+        platformType: "ide",
+        heroFeature: "Instant Shareable Test Link & Tunnel",
+        featureDetail: "1-click secure tunnel + auto-healing production TypeScript/bundle build errors before deploying to Vercel/Cloudflare.",
+        potential: "Very High",
+        potentialClass: "very-high",
+        monetizationModel: "Freemium + Cloud Add-on ($12–$19/mo)",
+        freeTier: "Local pre-flight build checks & temporary tunnel",
+        proTier: "Custom domain tunnels, automated zero-config deploy pipelines, team preview links",
+        gtm: "High Show-Off Factor: Every shared link has a badge"
+      },
+      {
+        id: "distrowizard",
+        name: "DistroWizard",
+        icon: "📦",
+        category: "desktop",
+        tag: "Zero-Config Desktop Packager",
+        platform: "Windows / macOS Desktop App",
+        platformType: "desktop",
+        heroFeature: "Drag-and-Drop Executable Generator",
+        featureDetail: "Drag any Python/Node/HTML folder → Spits out a standalone signed .exe or .dmg for non-technical friends with zero terminal setup.",
+        potential: "High",
+        potentialClass: "high",
+        monetizationModel: "Perpetual License ($39–$79 one-time)",
+        freeTier: "Unsigned packaging with basic launcher",
+        proTier: "Automated Apple/Windows code signing, icon auto-formatter, auto-updater module",
+        gtm: "Huge Python/AI script builder appeal"
+      },
+      {
+        id: "promptdiff",
+        name: "PromptDiffWizard",
+        icon: "⏳",
+        category: "ide",
+        tag: "AI Flight Recorder & AST Rewind",
+        platform: "VS Code / Cursor / Antigravity",
+        platformType: "ide",
+        heroFeature: "Selective 'Prompt Rewind'",
+        featureDetail: "Undo what prompt #3 broke while keeping prompt #5's fixes across multiple files using AST diff mapping.",
+        potential: "High",
+        potentialClass: "high",
+        monetizationModel: "Freemium ($10/mo)",
+        freeTier: "Last 10 prompt histories",
+        proTier: "Unlimited AST prompt timeline, semantic tagging, team prompt sharing",
+        gtm: "Directly solves LLM hallucination regrets"
+      },
+      {
+        id: "workspacewizard",
+        name: "WorkspaceWizard",
+        icon: "🗄️",
+        category: "desktop",
+        tag: "Universal Flow-State Restorer",
+        platform: "Windows / macOS (System Tray)",
+        platformType: "desktop",
+        heroFeature: "1-Click 'Freeze & Thaw' Context",
+        featureDetail: "Instantly captures and restores all open IDE windows, active terminal commands, Docker stacks, and browser tabs for any project.",
+        potential: "Medium",
+        potentialClass: "medium",
+        monetizationModel: "Pay-Once Utility ($29)",
+        freeTier: "Save 1 active project workspace",
+        proTier: "Unlimited project contexts, cloud backup, automated schedule triggers",
+        gtm: "High appeal for freelancers & agency devs"
+      },
+      {
+        id: "mockwizard",
+        name: "MockWizard",
+        icon: "🧪",
+        category: "ide",
+        tag: "Synthetic API & Data Seeder",
+        platform: "VS Code / Cursor / Antigravity",
+        platformType: "ide",
+        heroFeature: "AI-to-Mock API Generator",
+        featureDetail: "Reads frontend fetch() calls and generates a running local mock server with realistic synthetic data in 1 second.",
+        potential: "High",
+        potentialClass: "high",
+        monetizationModel: "Freemium + Team Seats ($15/seat)",
+        freeTier: "Up to 5 mock endpoints",
+        proTier: "OpenAPI schema auto-sync, relational DB seeding, team mock sharing",
+        gtm: "Unblocks frontend vibe coders instantly"
+      }
+    ];
+
+    let currentFilter = 'all';
+
+    function renderTable(items) {
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = items.map(item => `
+        <tr>
+          <td>
+            <div class="product-title">${item.icon} ${item.name}</div>
+            <div class="product-desc">${item.tag}</div>
+          </td>
+          <td>
+            <span class="platform-tag ${item.platformType}">${item.platform}</span>
+          </td>
+          <td>
+            <span class="feature-highlight">${item.heroFeature}</span>
+            <div class="feature-detail">${item.featureDetail}</div>
+          </td>
+          <td>
+            <span class="badge-pot ${item.potentialClass}">★ ${item.potential}</span>
+          </td>
+          <td>
+            <div class="price-model">
+              <strong>${item.monetizationModel}</strong>
+              <ul>
+                <li><strong>Free:</strong> ${item.freeTier}</li>
+                <li><strong>Pro:</strong> ${item.proTier}</li>
+              </ul>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function renderGrid(items) {
+      const grid = document.getElementById('gridView');
+      grid.innerHTML = items.map(item => `
+        <div class="idea-card">
+          <div class="card-header">
+            <div>
+              <div class="product-title">${item.icon} ${item.name}</div>
+              <div class="product-desc">${item.tag}</div>
+            </div>
+            <span class="badge-pot ${item.potentialClass}">${item.potential}</span>
+          </div>
+          <div class="card-body">
+            <div style="margin-bottom: 12px;">
+              <span class="platform-tag ${item.platformType}">${item.platform}</span>
+            </div>
+            
+            <div class="card-feature-box">
+              <div class="section-title">Hero Feature</div>
+              <div class="feature-highlight">${item.heroFeature}</div>
+              <div class="feature-detail">${item.featureDetail}</div>
+            </div>
+
+            <div class="card-monetization-box">
+              <div class="section-title">Monetization</div>
+              <div style="color: #fff; font-weight: 700; font-size: 0.95rem; margin-bottom: 6px;">${item.monetizationModel}</div>
+              <div style="font-size: 0.8rem; color: #cbd5e1;"><strong>Free:</strong> ${item.freeTier}</div>
+              <div style="font-size: 0.8rem; color: #a5b4fc; margin-top: 4px;"><strong>Pro:</strong> ${item.proTier}</div>
+            </div>
+          </div>
+          <div class="card-footer">
+            <span>🔥 ${item.gtm}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function filterPlatform(type) {
+      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+
+      if (type === 'all') {
+        renderTable(products);
+        renderGrid(products);
+      } else if (type === 'high') {
+        const filtered = products.filter(p => p.potentialClass === 'high' || p.potentialClass === 'very-high');
+        renderTable(filtered);
+        renderGrid(filtered);
+      } else {
+        const filtered = products.filter(p => p.category === type);
+        renderTable(filtered);
+        renderGrid(filtered);
+      }
+    }
+
+    function filterMonetization(level) {
+      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      const filtered = products.filter(p => p.potentialClass === 'high' || p.potentialClass === 'very-high');
+      renderTable(filtered);
+      renderGrid(filtered);
+    }
+
+    function setView(view) {
+      const table = document.getElementById('tableView');
+      const grid = document.getElementById('gridView');
+      const btnTable = document.getElementById('btnTable');
+      const btnGrid = document.getElementById('btnGrid');
+
+      if (view === 'table') {
+        table.style.display = 'block';
+        grid.style.display = 'none';
+        btnTable.classList.add('active');
+        btnGrid.classList.remove('active');
+      } else {
+        table.style.display = 'none';
+        grid.style.display = 'grid';
+        btnGrid.classList.add('active');
+        btnTable.classList.remove('active');
+      }
+    }
+
+    // Initial render
+    renderTable(products);
+    renderGrid(products);
+  </script>
+</body>
+</html>

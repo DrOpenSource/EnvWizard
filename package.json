@@ -1,0 +1,140 @@
+{
+  "name": "envwizard",
+  "displayName": "EnvWizard",
+  "description": "Port unjammer & dev environment guardian for vibe coders. 1-click unjam ports, kill zombie servers, and auto-heal missing .env variables.",
+  "version": "0.1.2",
+  "publisher": "dr-opensource",
+  "license": "MIT",
+  "icon": "assets/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DrOpenSource/EnvWizard.git"
+  },
+  "bugs": {
+    "url": "https://github.com/DrOpenSource/EnvWizard/issues"
+  },
+  "homepage": "https://envwizard.taqnik.in",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other",
+    "Programming Languages"
+  ],
+  "keywords": [
+    "port",
+    "kill port",
+    "eaddrinuse",
+    "env",
+    "dotenv",
+    "vibe coding",
+    "dev doctor"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "envwizard.scanPorts",
+        "title": "EnvWizard: Scan Dev Ports & Show Radar",
+        "category": "EnvWizard"
+      },
+      {
+        "command": "envwizard.unjamPort",
+        "title": "EnvWizard: 1-Click Unjam Specific Port",
+        "category": "EnvWizard"
+      },
+      {
+        "command": "envwizard.cleanSlate",
+        "title": "EnvWizard: Clean Slate (Kill All Dev Zombies)",
+        "category": "EnvWizard"
+      },
+      {
+        "command": "envwizard.auditEnv",
+        "title": "EnvWizard: Audit & Heal .env Variables",
+        "category": "EnvWizard"
+      },
+      {
+        "command": "envwizard.activateLicense",
+        "title": "EnvWizard: Activate Pro License ($9.99 Lifetime)",
+        "category": "EnvWizard"
+      },
+      {
+        "command": "envwizard.buyLicense",
+        "title": "EnvWizard: Get Pro Lifetime License ($9.99)",
+        "category": "EnvWizard"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "envwizard-deck",
+          "title": "EnvWizard",
+          "icon": "assets/activity-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "envwizard-deck": [
+        {
+          "type": "webview",
+          "id": "envwizard.devDeck",
+          "name": "Dev Deck"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "EnvWizard",
+      "properties": {
+        "envwizard.watchedPorts": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65535
+          },
+          "default": [
+            3000,
+            3001,
+            3002,
+            5173,
+            5174,
+            8000,
+            8080,
+            8888,
+            5432,
+            6379,
+            27017,
+            4200,
+            4000
+          ],
+          "description": "Ports shown in the status bar radar and Dev Deck. Clean Slate never stops databases or protected programs on these ports."
+        },
+        "envwizard.scanIntervalSeconds": {
+          "type": "number",
+          "minimum": 2,
+          "default": 5,
+          "description": "How often (in seconds) the status bar checks the watched ports."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./ --noEmit",
+    "build": "node esbuild.config.mjs",
+    "build:site": "node scripts/build-site.mjs",
+    "deploy:site": "npm run build:site && npx wrangler deploy",
+    "watch": "node esbuild.config.mjs --watch",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.0",
+    "@types/vscode": "^1.90.0",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.5"
+  }
+}

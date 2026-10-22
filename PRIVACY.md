@@ -1,0 +1,42 @@
+# 🔒 Privacy Policy — EnvWizard
+
+> **Last Updated: October 2026**
+
+At **Dr. OpenSource**, we believe developer tools should operate with total transparency and zero surveillance. **EnvWizard** is built from the ground up as an offline-first, local-only developer environment guardian.
+
+---
+
+## 1. Zero Network Transmission of Secrets
+
+- **No Remote Calls for Environment Data**: EnvWizard inspects `.env` files and process memory **strictly locally on your computer**.
+- **No Telemetry on Keys or Values**: Variable names (`STRIPE_KEY`, `OPENAI_API_KEY`) and their corresponding values are **never sent to any external server, analytics service, or third-party endpoint**.
+- **Local AST Scanning**: Parsing of code files (`.ts`, `.tsx`, `.py`, etc.) occurs entirely in memory within your local editor process.
+
+---
+
+## 2. Process Inspection & Port Diagnostics
+
+- EnvWizard uses native operating system APIs (`netstat`, `lsof`, `Get-CimInstance`, `ps`) exclusively to identify which process is holding a port.
+- No details about your processes, directory names, or project contents are ever recorded, uploaded, or shared.
+
+---
+
+## 3. License Validation
+
+- **Pro License Key Verification**: If you choose to activate EnvWizard Pro ($9.99 One-Time Lifetime), the license key you paste is sent **once**, at activation, to Gumroad's license API (`api.gumroad.com`) to confirm the purchase. Nothing else (no code, ports, paths or `.env` contents) is included in that request.
+- After activation your license key is stored in your editor's native secret storage (`vscode.ExtensionContext.secrets`) and Pro keeps working offline. It is never sent to any telemetry or analytics service.
+
+---
+
+## 4. Third-Party Analytics & Tracking
+
+- EnvWizard contains **zero tracking pixels, zero analytics SDKs (e.g. Google Analytics, Mixpanel, PostHog), and zero ad trackers**.
+- What happens on your machine stays on your machine.
+
+---
+
+## 5. Contact & Questions
+
+If you have any questions or security concerns regarding EnvWizard, please open an issue on our official GitHub repository:
+- **Repository**: [https://github.com/DrOpenSource/EnvWizard](https://github.com/DrOpenSource/EnvWizard)
+- **Organization**: [Dr. OpenSource](https://github.com/DrOpenSource)

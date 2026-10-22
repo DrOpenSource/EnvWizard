@@ -149,7 +149,13 @@
 ## 📌 Phase 8: v0.2 Make Pro Real & Meet Users at the Error
 **Goal**: Detect jams where they happen (the terminal) and ship the Pro features already being sold.
 
+> Full design: [`docs/V0.2_SPEC.md`](V0.2_SPEC.md). Work happens on the `v0.2` branch.
+
+- [x] **8.P1** `TerminalJamDetector` core (10+ tools, streamed/ANSI-safe, port inference, Windows reserved-port hint).
+- [x] **8.P2** Feasibility spike: shell-integration output reading proven in real VS Code 1.120 (integration test).
+- [x] **8.P3** Integration test harness + CI job on Windows / macOS / Ubuntu; `engines.vscode` → `^1.93.0`.
 - [ ] **8.0** Decide Pro sales stance (pause vs. "early supporter") and fix README/Gumroad copy accordingly.
+- [ ] **8.S1** Foundation: ownership classifier, polite stop via the owning terminal, Pro gating helper, Windows reserved ports.
 - [ ] **8.1** Terminal `EADDRINUSE` detector via shell integration: toast "Free it & rerun" (Free).
 - [ ] **8.2** Zero-click auto-unjam + rerun for workspace-owned processes only (Pro).
 - [ ] **8.3** Project-aware Clean Slate (cwd / command line inside the workspace).
@@ -159,4 +165,3 @@
 - [ ] **8.7** Multi-root workspace env audits.
 - [ ] **8.8** Windows: real polite shutdown (Ctrl+C to the owning terminal or `GenerateConsoleCtrlEvent`).
 - [ ] **8.9** Enforce the 3-machine license limit without counting reinstalls.
-- [ ] **8.10** VS Code integration test (test-electron) in CI on every release.

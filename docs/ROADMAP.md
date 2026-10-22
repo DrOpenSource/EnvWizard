@@ -163,8 +163,9 @@
 - [x] **8.3** Project-aware Clean Slate: multi-select picker, this project pre-checked, other projects unchecked, databases/protected never offered.
 - [x] **8.4** Live env watcher on file save for newly referenced keys (Pro, opt-in). Per-file check, debounced, one toast per key, status-bar badge.
 - [x] **8.5** Encrypted `.env` snapshots (AES-256-GCM, key in secret storage) at startup, around saves and before EnvWizard edits; restore with an in-memory diff preview (Pro, opt-in). Disclosed in PRIVACY.md.
-- [ ] **8.6** `.env.example` generator and value sanity checks (Free).
-- [ ] **8.7** Multi-root workspace env audits.
+- [x] **8.6** `.env.example` generator (never values; appends to an existing file) and value hints (Free).
+- [x] **8.7** Multi-root workspace env audits: folder picker in the Dev Deck.
 - [x] **8.8** Windows: real polite shutdown (Ctrl+C to the owning terminal or `GenerateConsoleCtrlEvent`).
 - [x] ~~**8.9** Enforce the 3-machine license limit~~: dropped (personal license, honour system).
-- [ ] **8.11** Launch: update `docs/CLAIMS.md` §4 → README/site/Gumroad from it → re-open Pro sales with 0.2.0.
+- [x] ~~**8.10** Port router (F6)~~: deferred to a later version; removed from settings and copy.
+- [ ] **8.11** Launch: ✅ CLAIMS.md §4 → README/site/Gumroad/media kit; ✅ 0.2.0 packaged and checked. Owner: GitHub CI, publish, tag, re-open Pro sales, deploy site (see `HANDOFF.md` §1).

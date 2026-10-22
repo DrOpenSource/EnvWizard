@@ -2,7 +2,7 @@
   "name": "envwizard",
   "displayName": "EnvWizard",
   "description": "Port unjammer & .env checker for vibe coders. See what is holding port 3000, free it safely in one click, and find env variables your code needs but your .env is missing.",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "publisher": "dr-opensource",
   "license": "MIT",
   "icon": "assets/icon.png",

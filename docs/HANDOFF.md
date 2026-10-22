@@ -12,15 +12,24 @@
 |---|---|
 | **VS Code Marketplace** | 0.1.1 (live) |
 | **Open VSX** (Cursor, Antigravity) | 0.1.2 (live) |
-| **`main` branch** | **0.1.3**, built but **not being published** (owner decision, see §2): v0.2 is the next release |
-| **`v0.2` branch** | Sprints 1–4 done (foundation, F1 terminal alert, F2 auto-unjam, F3 project-aware Clean Slate, F4 live env watcher, F5 encrypted snapshots). Only Sprint 5 + release remain. Version still 0.1.x; bumped only at release |
-| **Pro sales** | **On hold** until v0.2 ships the Pro features. No licenses sold. |
-| **Website** (`index.html` → envwizard.taqnik.in) | Copy updated on `main`; **needs deploy** (`npm run deploy:site`) |
-| **CI** | GitHub Actions: unit tests on Windows/macOS/Ubuntu (green); integration job added on `v0.2` (not yet run on GitHub: it runs on PRs to `main`) |
+| **`main` branch** | 0.1.3 copy (honest "Pro coming" site). Not published (owner decision, §2) |
+| **`v0.2` branch** | **0.2.0 complete and packaged** (`envwizard-0.2.0.vsix`, identity checked, installs). All sprints done; F6 port router deferred to a later version. Not pushed, merged, tagged or published yet |
+| **Pro sales** | On hold. Re-open when 0.2.0 is live on both registries (`GUMROAD_KIT.md`). No licenses sold. |
+| **Website (live)** | ⚠️ **Stale pre-0.1.3 build** (checked 2026-10-23): "Buy Pro for $9.99" buttons, "100% offline", "auto-heals on file save". It advertises features the published versions don't have. |
+| **CI** | Unit tests on Windows/macOS/Ubuntu were green at 0.1.3. The v0.2 work has **not run on GitHub CI yet** (not pushed); the integration job runs on PRs to `main`. |
 
-### Owner's pending actions
-1. Check the Gumroad product is unpublished or paused, and check that `assets/gumroad_cover.jpg` doesn't advertise unshipped features before it is ever used again.
-2. *(Deferred, not needed)* 0.1.3 publish and website deploy: skipped by decision (§2). Don't raise them again unless the owner asks.
+### Owner's launch steps (in this order)
+1. **Today, independent of 0.2.0:** fix the live site. Either pause the Gumroad product, or deploy the honest 0.1.3 site from `main` (`git checkout main && npm run deploy:site`). Check `assets/gumroad_cover.jpg` before it is used again.
+2. Push `v0.2` and open a PR to `main`: CI runs unit tests (3 OSes) and the integration suite (3 OSes). Fix anything red. Watch for the once-seen terminal-test flake (§6).
+3. Optional but recommended: try the VSIX by hand in Cursor (not installed on the dev machine, so never tested there).
+4. Merge to `main`, then publish (versions checked 2026-10-23: Marketplace 0.1.1, Open VSX 0.1.2, so 0.2.0 is valid; re-check if time has passed):
+   ```
+   npx @vscode/vsce publish --packagePath envwizard-0.2.0.vsix
+   npx ovsx publish envwizard-0.2.0.vsix -p <OVSX_TOKEN>
+   ```
+   Rebuild the VSIX first if anything changed after CI (`npx @vscode/vsce package --out envwizard-0.2.0.vsix`).
+5. Tag `v0.2.0` and push the tag.
+6. Re-open Gumroad from `GUMROAD_KIT.md` (confirm the product ID in `LicenseManager.ts`, then buy-test with a real key once), then `npm run deploy:site` from `main`.
 
 ---
 
@@ -34,6 +43,8 @@
 | 2026-10-22 | **All public copy follows [`CLAIMS.md`](CLAIMS.md)**: shipped + tested features only; measured numbers only; planned items labelled "Coming in v0.2". |
 | 2026-10-22 | Offline self-generated `ENVWIZ-` keys removed (the keygen shipped in the bundle). Gumroad keys only. |
 | 2026-10-22 | **0.1.3 will not be published** and the website not redeployed for now: no purchases or user requests so far, so there is no one to mislead. All effort goes to v0.2. |
+| 2026-10-23 | **F6 port router deferred** to a later version: riskiest feature (rewrites the user's command), and F1–F5 are a complete Pro offer. Its setting was removed and it is out of all launch copy. |
+| 2026-10-23 | Pro features are **opt-in, including the env watcher** (the spec said "default on for Pro"; the opt-in rule won). Restoring snapshots works even with snapshots turned off. |
 | 2026-10-22 | Free/Pro split for v0.2: manual 1-click fixes are free (including the terminal "Free & Rerun" alert); Pro = opt-in automation and safety nets (auto-unjam, live env watcher, encrypted snapshots, port router). |
 
 ---
@@ -64,8 +75,8 @@ Effort estimates are in **working sessions** (one focused session ≈ what was d
 | ✅ **Sprint 2: F1 terminal alert (Free)** | `src/extension/terminalAlert.ts`: "Port 3000 jam → Free & Rerun" toast; shifted-port (Vite/Next) notice; reserved-port explainer; degrades without shell integration; real output confirmed for 7 tools | Done (144 unit + 4 integration tests passing) | — |
 | ✅ **Sprint 3: F2 + F3** | Pro auto-unjam & rerun (opt-in, only own project/terminal); project-aware Clean Slate (multi-select) | Done (166 unit + 5 integration tests passing) | — |
 | ✅ **Sprint 4: F4 + F5** | `envWatcher.ts`: Pro live env watcher (per-file, debounced); `EnvSnapshots.ts` + `snapshots.ts`: Pro encrypted snapshots (AES-256-GCM, key in SecretStorage, restore with in-memory diff) | Done (200 unit + 6 integration tests passing) | — |
-| **Sprint 5: F7 (+ F6 stretch) & launch prep** | `.env.example` generator, value sanity checks, multi-root; port router only if time allows; listing/README/site from `CLAIMS.md`; smoke test in Cursor and Antigravity | Release checklist in `PUBLISHING.md` §5 | 1–2 |
-| **Release 0.2.0** | Version check → bump → package → publish → **re-open Pro sales** with copy that lists only shipped Pro features | — | — |
+| ✅ **Sprint 5: F7 & launch prep** | `.env.example` generator, value hints, multi-root Dev Deck; F6 deferred; CLAIMS → README/site/Gumroad/media kit/EULA; integration suite passed in Antigravity IDE 1.107 | Done (215 unit + 6 integration tests passing) | — |
+| ◐ **Release 0.2.0** | ✅ version check, bump, package, VSIX identity + install check. **Owner:** CI on GitHub, publish, tag, re-open Pro sales, deploy site (§1) | — | — |
 
 **Total: roughly 6–9 working sessions.** If time is short, ship v0.2 with F1–F5 and move F6 (port router) to v0.3. In that case remove it from the Pro copy before launch.
 
@@ -87,12 +98,16 @@ Effort estimates are in **working sessions** (one focused session ≈ what was d
 
 ## 6. Next steps (pick up here)
 
-1. Start **Sprint 5** (the last one before release) from `V0.2_SPEC.md` §4 F7 / F6:
-   - F7 (Free): `.env.example` generator (keys, values stripped, comments/order kept); soft value sanity hints; multi-root folder selector in the Dev Deck.
-   - F6 port router (Pro): stretch only. If skipped, take it out of all Pro copy (CLAIMS.md §4) before launch.
-   - Launch prep: update `docs/CLAIMS.md` §4 from what actually shipped → README / site / Gumroad listing; smoke test the VSIX in Cursor and Antigravity; run the `PUBLISHING.md` §5 checklist.
-2. Then **Release 0.2.0**: check both registries' live versions first (memory + `PUBLISHING.md` §5), bump, package, hand the owner the publish commands, re-open Pro sales.
-3. At the end of each session, tick boxes in `ROADMAP.md` and update §1 and §6 of this file.
+1. The owner's launch steps in §1. Development work for 0.2.0 is finished.
+2. After launch: watch GitHub issues for terminal-alert reports from shells/editors we couldn't test (Cursor, macOS/Linux shells by hand, cmd.exe users who get nothing).
+3. Candidates for 0.3 (not promised anywhere): F6 port router; confirm CRA/Rails/Bun/Go messages with real runs; faster process inspection on Windows (PowerShell makes a jam toast take ~2 s); a snapshot export/import so snapshots survive a new computer.
+
+### Findings from Sprint 5 (2026-10-23)
+- **F7:** `core/EnvTemplate.ts` (`buildEnvExample`, `findValueHints`) and `extension/envExample.ts`. An existing `.env.example` is only appended to, never rewritten. Hints never include values. Spaces around *unquoted* values aren't flagged, because dotenv trims them.
+- **Multi-root:** the Dev Deck's folder picker passes the folder to `auditEnv` / `generateEnvExample` as a command argument.
+- **Antigravity IDE 1.107** (at `%LOCALAPPDATA%\Programs\Antigravity IDE`) runs the whole integration suite: set `VSCODE_EXECUTABLE` to its exe. Cursor is **not** installed (`NewCursor` in Programs is an unrelated project folder).
+- **The live site was found stale** (see §1); `public/` is gitignored build output, regenerated by `deploy:site`.
+- The VSIX ships `dist/extension.js.map` (245 KB uncompressed; the whole VSIX is 205 KB). Harmless for an MIT project; exclude `*.map` in `.vscodeignore` if size matters.
 
 ### Findings from Sprint 4 (2026-10-23)
 - **F4** (`envWatcher.ts`): on save, `EnvHealer.findMissingKeysInFile` reads only the env files that file can see (own folder + parents): no workspace rescan. One toast per key per session; a `$(key) N missing env keys` badge stays until they're defined (rechecked when an env file is saved). The Dev Deck refreshes only when a *new* missing key appears. **Opt-in (default off)** like every Pro automation; the spec's "default on for Pro" was overridden by the opt-in rule.

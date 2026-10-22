@@ -25,7 +25,7 @@ test('activates and registers all commands', async () => {
   assert.equal(ext.isActive, true);
 
   const commands = await vscode.commands.getCommands(true);
-  for (const id of ['scanPorts', 'unjamPort', 'cleanSlate', 'auditEnv', 'activateLicense', 'buyLicense']) {
+  for (const id of ['scanPorts', 'unjamPort', 'cleanSlate', 'auditEnv', 'activateLicense', 'buyLicense', 'restoreSnapshot', 'generateEnvExample']) {
     assert.ok(commands.includes(`envwizard.${id}`), `missing command envwizard.${id}`);
   }
 });

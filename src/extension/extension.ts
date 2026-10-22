@@ -15,7 +15,7 @@ import { EnvWatcher, openEnvAtKey } from './envWatcher.js';
 import { EnvSnapshots } from './snapshots.js';
 import { envExampleMessage, syncEnvExample } from './envExample.js';
 
-// Pricing section of the website (Pro status and what's coming; see docs/CLAIMS.md)
+// Pricing section of the website (what Pro includes and where to buy it; see docs/CLAIMS.md)
 const PRODUCT_URL = 'https://envwizard.taqnik.in/#pricing';
 
 /**
@@ -306,7 +306,16 @@ export async function activate(context: vscode.ExtensionContext) {
       );
       if (success) {
         await context.secrets.store('envwizard_license_key', input.trim());
-        vscode.window.showInformationMessage('⭐ EnvWizard Pro activated. Thank you for your support!');
+        // Every Pro feature is opt-in, so point new Pro users at the switches
+        const turnOn = 'Turn On Pro Features';
+        void vscode.window
+          .showInformationMessage(
+            '⭐ EnvWizard Pro activated. Thank you for your support! Pro features are off until you turn them on.',
+            turnOn
+          )
+          .then((choice) => {
+            if (choice === turnOn) void vscode.commands.executeCommand('workbench.action.openSettings', 'envwizard');
+          });
       } else if (licenseManager.lastActivationError === 'offline') {
         vscode.window.showErrorMessage(
           "🌐 Couldn't reach the license server. Activation needs internet once; after that Pro works offline."

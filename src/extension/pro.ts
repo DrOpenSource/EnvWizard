@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { LicenseManager } from '../core/LicenseManager.js';
 
-export type ProFeatureId = 'autoUnjam' | 'envWatcher' | 'snapshots' | 'portRouter';
+export type ProFeatureId = 'autoUnjam' | 'envWatcher' | 'snapshots';
 
 export interface ProFeatureMetadata {
   id: ProFeatureId;
@@ -28,12 +28,6 @@ export const PRO_FEATURES: Record<ProFeatureId, ProFeatureMetadata> = {
     settingKey: 'envwizard.snapshots',
     title: 'Encrypted .env Snapshots',
     description: 'Automatically creates encrypted local snapshots before env file modifications.',
-  },
-  portRouter: {
-    id: 'portRouter',
-    settingKey: 'envwizard.portRouter',
-    title: 'Multi-Project Port Router',
-    description: 'Reruns conflicting projects on alternate available ports.',
   },
 };
 

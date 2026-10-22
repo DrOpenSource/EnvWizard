@@ -73,7 +73,7 @@
       },
       {
         "command": "envwizard.buyLicense",
-        "title": "EnvWizard: About EnvWizard Pro (coming in v0.2)",
+        "title": "EnvWizard: About EnvWizard Pro ($9.99 once)",
         "category": "EnvWizard"
       }
     ],
@@ -141,17 +141,12 @@
         "envwizard.envWatcher": {
           "type": "boolean",
           "default": false,
-          "description": "(Pro) Check for newly referenced environment variables when saving code files."
+          "description": "(Pro) When you save a code file that uses an env variable no env file defines, tell me and offer to add it."
         },
         "envwizard.snapshots": {
           "type": "boolean",
           "default": false,
-          "description": "(Pro) Create encrypted local snapshots of .env files before edits and on save."
-        },
-        "envwizard.portRouter": {
-          "type": "boolean",
-          "default": false,
-          "description": "(Pro) Multi-Project Port Router: offer to rerun conflicting projects on an alternate port."
+          "description": "(Pro) Keep encrypted local snapshots of .env files (at startup, around saves and before EnvWizard edits them) and restore them with EnvWizard: Restore .env Snapshot."
         }
       }
     }

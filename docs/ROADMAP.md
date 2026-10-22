@@ -144,7 +144,9 @@
 - [x] **7.10** Monorepo env files (per-package scope); detect already-committed env files + `git rm --cached`; icon.png 420→95 KB.
 - [x] **7.11** GitHub Actions CI matrix (Windows / macOS / Ubuntu).
 - [x] **7.12** Version check: both registries were on 0.1.1 on 2026-10-22, so 0.1.2 is the correct next version.
-- [ ] **7.13** Publish `envwizard-0.1.2.vsix` to the VS Code Marketplace and Open VSX (manual, by the owner).
+- [x] **7.13** 0.1.2 published to Open VSX (byte-identical to the local build). The Marketplace was skipped, with 0.1.3 going to both.
+- [x] **7.14** 0.1.3 copy release: Pro purchase prompts removed (sales on hold), personal license (no machine limit), all copy aligned with `docs/CLAIMS.md`; `docs/HANDOFF.md` added.
+- [ ] **7.15** Publish `envwizard-0.1.3.vsix` to the VS Code Marketplace and Open VSX, and deploy the website (owner).
 
 ## 📌 Phase 8: v0.2 Make Pro Real & Meet Users at the Error
 **Goal**: Detect jams where they happen (the terminal) and ship the Pro features already being sold.
@@ -154,7 +156,7 @@
 - [x] **8.P1** `TerminalJamDetector` core (10+ tools, streamed/ANSI-safe, port inference, Windows reserved-port hint).
 - [x] **8.P2** Feasibility spike: shell-integration output reading proven in real VS Code 1.120 (integration test).
 - [x] **8.P3** Integration test harness + CI job on Windows / macOS / Ubuntu; `engines.vscode` → `^1.93.0`.
-- [ ] **8.0** Decide Pro sales stance (pause vs. "early supporter") and fix README/Gumroad copy accordingly.
+- [x] **8.0** Pro sales on hold until v0.2; $9.99 one-time personal license, no machine limit (decided 2026-10-22; see `docs/CLAIMS.md`).
 - [ ] **8.S1** Foundation: ownership classifier, polite stop via the owning terminal, Pro gating helper, Windows reserved ports.
 - [ ] **8.1** Terminal `EADDRINUSE` detector via shell integration: toast "Free it & rerun" (Free).
 - [ ] **8.2** Zero-click auto-unjam + rerun for workspace-owned processes only (Pro).
@@ -164,4 +166,5 @@
 - [ ] **8.6** `.env.example` generator and value sanity checks (Free).
 - [ ] **8.7** Multi-root workspace env audits.
 - [ ] **8.8** Windows: real polite shutdown (Ctrl+C to the owning terminal or `GenerateConsoleCtrlEvent`).
-- [ ] **8.9** Enforce the 3-machine license limit without counting reinstalls.
+- [x] ~~**8.9** Enforce the 3-machine license limit~~: dropped (personal license, honour system).
+- [ ] **8.11** Launch: update `docs/CLAIMS.md` §4 → README/site/Gumroad from it → re-open Pro sales with 0.2.0.

@@ -19,3 +19,4 @@ index.html
 assets/gumroad_*.jpg
 assets/icon.svg
 .github/**
+.vscode-test/**

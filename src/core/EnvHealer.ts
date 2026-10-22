@@ -206,9 +206,7 @@ export class EnvHealer {
       }
     }
 
-    const envPath = path.join(workspacePath, '.env');
-    const envLocalPath = path.join(workspacePath, '.env.local');
-    const healTargetPath = !fs.existsSync(envPath) && fs.existsSync(envLocalPath) ? envLocalPath : envPath;
+    const healTargetPath = this.getHealTarget(workspacePath);
 
     return {
       envFileExists: envFilesFound.length > 0,
@@ -223,6 +221,46 @@ export class EnvHealer {
       notGitignored: this.findUnignoredEnvFiles(workspacePath, envFilesFound),
       trackedByGit: this.findTrackedEnvFiles(workspacePath, envFilesFound),
     };
+  }
+
+  /** Where missing keys are added: `.env`, or `.env.local` when only that exists. */
+  getHealTarget(workspacePath: string): string {
+    const envPath = path.join(workspacePath, '.env');
+    const envLocalPath = path.join(workspacePath, '.env.local');
+    return !fs.existsSync(envPath) && fs.existsSync(envLocalPath) ? envLocalPath : envPath;
+  }
+
+  /**
+   * Keys one code file uses that no env file it can see defines (its own folder and every parent
+   * up to the workspace root). Blank values count as defined. Reads only those env files, so the
+   * cost is O(file): no workspace scan. Used by the live env watcher on save.
+   */
+  findMissingKeysInFile(workspacePath: string, filePath: string, code: string): { key: string; suggestedValue: string }[] {
+    const rel = path.relative(workspacePath, filePath).split(path.sep).join('/');
+    if (!rel || rel.startsWith('../') || path.isAbsolute(rel) || !isScannableCodeFile(rel, code.length)) return [];
+    if (path.posix.dirname(rel).split('/').some((seg) => IGNORE_DIRS.has(seg) || (seg.startsWith('.') && seg !== '.'))) return [];
+
+    const keys = this.extractVariablesFromCode(code);
+    if (keys.size === 0) return [];
+
+    const envByDir = new Map<string, Map<string, string>>();
+    for (let dir = path.posix.dirname(rel); ; dir = path.posix.dirname(dir)) {
+      this.collectEnvFiles(workspacePath, dir === '.' ? '' : dir, envByDir, []);
+      if (dir === '.' || dir === '') break;
+    }
+
+    const examplePath = path.join(workspacePath, '.env.example');
+    let example = new Map<string, string>();
+    try {
+      if (fs.existsSync(examplePath)) example = this.parseEnv(fs.readFileSync(examplePath, 'utf8'));
+    } catch {
+      // Unreadable template: no suggested values
+    }
+
+    return [...keys]
+      .filter((key) => lookupKeyForFile(key, rel, envByDir) === undefined)
+      .sort()
+      .map((key) => ({ key, suggestedValue: example.get(key) || '' }));
   }
 
   /**
@@ -384,8 +422,7 @@ export class EnvHealer {
             );
           }
         } else if (entry.isFile()) {
-          const ext = path.extname(entry.name).toLowerCase();
-          if (!ALLOWED_EXTENSIONS.has(ext) || entry.name.endsWith('.min.js') || entry.name.endsWith('.d.ts')) {
+          if (!isScannableCodeFile(entry.name)) {
             continue;
           }
 
@@ -413,6 +450,12 @@ export class EnvHealer {
       // Ignore directory read errors
     }
   }
+}
+
+/** Code files the env scanner reads (not minified bundles, type declarations or oversized files). */
+export function isScannableCodeFile(fileName: string, sizeBytes = 0): boolean {
+  const ext = path.extname(fileName).toLowerCase();
+  return ALLOWED_EXTENSIONS.has(ext) && !fileName.endsWith('.min.js') && !fileName.endsWith('.d.ts') && sizeBytes <= MAX_FILE_BYTES;
 }
 
 /**

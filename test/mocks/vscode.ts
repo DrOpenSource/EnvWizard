@@ -27,3 +27,13 @@ export enum QuickPickItemKind {
   Separator = -1,
   Default = 0,
 }
+export enum StatusBarAlignment {
+  Left = 1,
+  Right = 2,
+}
+export class Position {
+  constructor(public line: number, public character: number) {}
+}
+export class Range {
+  constructor(public start: Position, public end: Position) {}
+}

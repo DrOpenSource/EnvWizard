@@ -11,6 +11,7 @@ import { DevDeckViewProvider } from './DevDeckView.js';
 import { PortServices, ProcessDetailsCache, cleanSlate, confirmAndUnjam } from './actions.js';
 import { TerminalJamAlerts } from './terminalAlert.js';
 import { isProFeatureEnabled } from './pro.js';
+import { EnvWatcher, openEnvAtKey } from './envWatcher.js';
 
 // Pricing section of the website (Pro status and what's coming; see docs/CLAIMS.md)
 const PRODUCT_URL = 'https://envwizard.taqnik.in/#pricing';
@@ -83,10 +84,22 @@ export async function activate(context: vscode.ExtensionContext) {
     log: (line) => output.appendLine(line),
   });
   terminalAlerts.start();
+
+  // F4 (Pro, opt-in): check each saved code file for env variables no env file defines
+  const envWatcher = new EnvWatcher({
+    healer,
+    isEnabled: () => isProFeatureEnabled('envWatcher', proGating),
+    onDidChange: () => devDeckProvider.updateDeckState(),
+  });
+  envWatcher.start();
+  context.subscriptions.push(envWatcher);
+
   context.subscriptions.push(
     // A free user who turns on a Pro setting hears about it once, right away
     vscode.workspace.onDidChangeConfiguration((e) => {
-      if (e.affectsConfiguration('envwizard.autoUnjam')) void isProFeatureEnabled('autoUnjam', proGating);
+      for (const id of ['autoUnjam', 'envWatcher'] as const) {
+        if (e.affectsConfiguration(`envwizard.${id}`)) void isProFeatureEnabled(id, proGating);
+      }
     })
   );
   context.subscriptions.push(terminalAlerts);
@@ -274,18 +287,11 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 
   // Integration tests drive the terminal alert through this; nothing is exported otherwise
-  return context.extensionMode === vscode.ExtensionMode.Test ? { terminalAlerts } : undefined;
+  return context.extensionMode === vscode.ExtensionMode.Test ? { terminalAlerts, envWatcher } : undefined;
 }
 
 function summarizeKeys(keys: string[]): string {
   return keys.length <= 4 ? keys.join(', ') : `${keys.slice(0, 4).join(', ')} +${keys.length - 4} more`;
-}
-
-async function openEnvAtKey(envPath: string, key: string) {
-  const doc = await vscode.workspace.openTextDocument(envPath);
-  const line = doc.getText().split(/\r?\n/).findIndex((l) => l.startsWith(`${key}=`));
-  const pos = new vscode.Position(Math.max(0, line), key.length + 1);
-  await vscode.window.showTextDocument(doc, { selection: new vscode.Range(pos, pos) });
 }
 
 /**

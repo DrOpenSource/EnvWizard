@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.3: Honest Pro information
+
+- The Dev Deck and command palette no longer offer a Pro purchase. **Pro is coming with v0.2** (auto-unjam & rerun, a live `.env` watcher and encrypted `.env` snapshots), as a $9.99 one-time personal license. Everything in the free version stays free.
+- The README, privacy policy and license terms now describe exactly what EnvWizard does today. The Pro license is a personal license for all your own machines, with no machine limit.
+- No functional changes since 0.1.2.
+
 ## 0.1.2: Reliability hotfix
 
 Thank you to everyone who installed 0.1.x and shared feedback. This release fixes the problems you reported.

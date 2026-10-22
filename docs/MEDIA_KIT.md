@@ -1,5 +1,7 @@
 # 🎨 EnvWizard — Media Kit & Launch Kit
 
+> Before posting anything, check it against [`CLAIMS.md`](CLAIMS.md): only shipped features, no Pro sales until v0.2.
+
 Welcome to the **EnvWizard Media Kit**. This document provides ready-to-use brand assets, store copy, promotional posts, and launch kits for announcing EnvWizard on Product Hunt, X (Twitter), Reddit, and developer communities.
 
 ---
@@ -30,7 +32,7 @@ Welcome to the **EnvWizard Media Kit**. This document provides ready-to-use bran
 - *"Never Google EADDRINUSE again."*
 
 ### Short Description (Under 150 chars)
-> *"Scans ports 3000/5173/8000, safely kills background zombie dev servers, and auto-heals missing .env variables from code. Built for vibe coders."*
+> *"Scans ports 3000/5173/8000, safely kills background zombie dev servers, and finds missing .env variables and adds placeholders. Built for vibe coders."*
 
 ---
 
@@ -49,13 +51,13 @@ Instead of hunting down rogue PIDs with `lsof` or `netstat`, EnvWizard gives you
 
 What it does:
 1. 🚦 Real-time Port Radar in your status bar
-2. 🪦 Safe Zombie Killer (polite shutdown -> force evict if stuck, with system PID shield)
-3. 🧩 Secret Box Healer: AI added `process.env.STRIPE_KEY`? EnvWizard spots the diff and offers a 1-click fill.
-4. 🧹 1-Click "Clean Slate" to wipe all background servers.
+2. 🪦 Safe Zombie Killer (asks first, and refuses to stop your editor, Docker, WSL or system processes)
+3. 🧩 Secret Box Check: AI added `process.env.STRIPE_KEY`? EnvWizard finds it missing from .env and adds a placeholder in 1 click.
+4. 🧹 1-Click "Clean Slate" to stop leftover dev servers (databases are left alone).
 
 Best part?
-Free forever for manual 1-click unjamming.
-Pro is a $9.99 ONE-TIME lifetime license. No recurring subscriptions.
+Free forever.
+Pro (hands-free extras) is coming with v0.2: $9.99 once, personal license, no subscription.
 
 Check it out: https://github.com/DrOpenSource/EnvWizard
 ```
@@ -72,11 +74,11 @@ Like many of you vibe-coding with Cursor and Antigravity, I found myself constan
 
 I got tired of running `lsof -ti:3000 | xargs kill -9`, so I built **EnvWizard**:
 - Sits in the status bar: shows `🔌 Dev: All Clear` or `🚨 Busy: :3000`
-- 1-click unjams the port with a graceful two-stage shutdown.
-- Has a Protected Shield so you never accidentally kill Docker or system services.
-- Passively monitors file saves: when new env vars appear in code, it offers 1-click template filling.
+- Shows which program holds the port and frees it in 1 click after a confirmation.
+- Refuses to stop programs on its protected list (your editor, Docker, WSL, system processes).
+- Finds env variables your code uses that are missing or blank in .env / .env.local, and adds placeholders in 1 click.
 
-It's completely offline-first, collects zero telemetry on your secrets, and has a $9.99 one-time lifetime license (no subscriptions!).
+It runs locally, collects zero telemetry, and the core is free. A $9.99 one-time Pro (no subscription) is coming with v0.2.
 
 GitHub & VSIX download: https://github.com/DrOpenSource/EnvWizard
 Feedback and ideas are welcome!
@@ -88,7 +90,7 @@ Feedback and ideas are welcome!
 - **Product Name**: EnvWizard
 - **Tagline**: The 1-click port unjammer and dev environment guardian
 - **Topics**: Developer Tools, Open Source, Productivity, Artificial Intelligence
-- **Pricing**: Free with $9.99 One-Time Lifetime License
+- **Pricing**: Free. Pro ($9.99 one-time personal license) launches with v0.2
 
 **Maker Comment**:
-> *"Hey Product Hunt! 👋 We built EnvWizard because AI-assisted coding is fast, but local environments are fragile. Port traffic jams (`EADDRINUSE`) and missing `.env` variables kill flow-state faster than anything else. EnvWizard translates low-level operating system errors into calm, plain-English intent cards. It's safe, private, and 100% offline. Hope it saves you from terminal headaches!"*
+> *"Hey Product Hunt! 👋 We built EnvWizard because AI-assisted coding is fast, but local environments are fragile. Port traffic jams (`EADDRINUSE`) and missing `.env` variables kill flow-state faster than anything else. EnvWizard translates low-level operating system errors into calm, plain-English intent cards. It's safe, private, and runs locally. Hope it saves you from terminal headaches!"*

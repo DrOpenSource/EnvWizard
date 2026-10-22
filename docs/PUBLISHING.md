@@ -90,14 +90,20 @@ For instant viral distribution and vibe coders who want to drag-and-drop the ext
 
 ---
 
-## 4. Setting Up the $9.99 One-Time Lifetime License
+## 4. Pro License (Gumroad)
 
-1. **Platform**: Create a digital product on [LemonSqueezy](https://lemonsqueezy.com/) or [Gumroad](https://gumroad.com/).
-2. **Product Details**:
-   - **Title**: `EnvWizard Pro — Lifetime Developer License`
-   - **Price**: `$9.99 USD` (One-Time Payment)
-   - **Fulfill with License Keys**: Enable automated key generation or webhook.
-   - Format: `ENVWIZ-XXXX-XXXX-XXXX` (compatible with `LicenseManager.generateKey()`).
-3. **In-App Experience**:
-   - Free users click *"Enter License Key"* in the Dev Deck or run `EnvWizard: Activate Pro License`.
-   - Key is stored in secure local editor secret storage and validates offline.
+> ⏸ **Pro sales are on hold until v0.2.** Launch-day listing copy and dashboard settings are in [`GUMROAD_KIT.md`](GUMROAD_KIT.md); pricing and licence rules are in [`CLAIMS.md`](CLAIMS.md).
+
+- **Keys:** Gumroad generates a unique license key per sale. The extension verifies keys with Gumroad's license API (`LicenseManager.verifyGumroadKey`). There are no self-generated `ENVWIZ-` keys anymore.
+- **In-app:** `EnvWizard: Activate Pro License` → paste key → verified online once → stored in editor secret storage → works offline afterwards.
+
+---
+
+## 5. Release Checklist (every version)
+
+1. Check the live versions: Marketplace (`extensionquery` API for `dr-opensource.envwizard`) and Open VSX (`https://open-vsx.org/api/dr-opensource/envwizard`). Published versions can't be replaced, so the new version must be higher than **both**.
+2. Bump `package.json` `version`, and update `CHANGELOG.md`.
+3. Run `npm run compile`, `npm test`, `npm run test:integration` (where available) and `npm run build`.
+4. Run `npx @vscode/vsce package --out envwizard-<version>.vsix`, then confirm the `<Identity Id="envwizard" Publisher="dr-opensource" Version="…">` inside the VSIX.
+5. Run `npx @vscode/vsce publish --packagePath envwizard-<version>.vsix` and `npx ovsx publish envwizard-<version>.vsix -p <OVSX_TOKEN>`.
+6. Commit, tag `v<version>`, push.

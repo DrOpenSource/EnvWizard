@@ -142,7 +142,9 @@ EnvWizard strips away cryptic terminal jargon and replaces it with intuitive dev
 
 ---
 
-## 7. Monetization Strategy: $9.99 One-Time Lifetime License
+## 7. Monetization Strategy: $9.99 One-Time Personal License
+
+> **Current decisions and approved public wording live in [`CLAIMS.md`](CLAIMS.md).** Pro sales are on hold until v0.2 ships the Pro features. This PRD describes goals; it is not public copy.
 
 ### Why Developers & Vibe Coders Prefer One-Time Pricing
 - **Zero Subscription Fatigue**: Developers hate paying $5/mo or $8/mo for small utilities.
@@ -151,19 +153,18 @@ EnvWizard strips away cryptic terminal jargon and replaces it with intuitive dev
 
 ### Tier Comparison Matrix
 
-| Feature | Free Tier ("The Port Fireman") | Pro License ($9.99 One-Time) |
-| :--- | :---: | :---: |
-| **Price** | **$0 (Free Forever)** | **$9.99 One-Time (Lifetime)** |
-| 1-Click Manual Port Unjammer | ✅ Yes | ✅ Yes |
-| Top 10 Dev Port Radar | ✅ Yes | ✅ Yes (Unlimited custom ports) |
-| Plain-English Error Decoder | ✅ Yes | ✅ Yes |
-| Single `.env` vs `.env.example` Check | ✅ Yes | ✅ Yes |
-| **Zero-Click Background Auto-Unjam** | ❌ Manual Click Required | ✅ Automatic daemon resolution |
-| **AI Variable Auto-Healer (AST Code Scanner)** | ❌ | ✅ Real-time file-save watcher |
-| **Multi-Project Port Auto-Router** | ❌ | ✅ Auto-assigns port 3001 if 3000 is busy |
-| **Docker & Database Container Health** | ❌ | ✅ Inspects stuck local Postgres/Redis containers |
-| **Encrypted `.env.vault` Local Backup** | ❌ | ✅ Auto-snapshots `.env` before changes |
-| License Type | Free | Perpetual (Up to 3 machines per user) |
+| Feature | Free | Pro ($9.99 one-time) | Status |
+| :--- | :---: | :---: | :--- |
+| Port radar (configurable ports), 1-click unjam, Clean Slate, Safety Shield | ✅ | ✅ | Shipped (0.1.x) |
+| `.env` missing/blank finder, `.gitignore` & committed-secret checks | ✅ | ✅ | Shipped (0.1.x) |
+| Terminal port-jam alert with **Free & Rerun** | ✅ | ✅ | v0.2 |
+| Project-aware Clean Slate, `.env.example` generator, value sanity checks | ✅ | ✅ | v0.2 |
+| **Auto-unjam & rerun** (hands-free, opt-in) | Manual click | ✅ | v0.2 |
+| **Live `.env` watcher on save** | Manual refresh | ✅ | v0.2 |
+| **Encrypted `.env` snapshots + restore** | ❌ | ✅ | v0.2 |
+| **Port router** (run on another port) | ❌ | ✅ | v0.2 (stretch) |
+| Docker / database container health | ❌ | ❌ | Not planned |
+| License | — | Personal license, all your own machines, never expires, 30-day refunds | Decided 2026-10-22 |
 
 ---
 

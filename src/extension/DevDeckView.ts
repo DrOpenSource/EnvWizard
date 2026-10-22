@@ -188,9 +188,9 @@ export class DevDeckViewProvider implements vscode.WebviewViewProvider {
   <div id="envStatus"><div class="empty-state">Scanning workspace…</div></div>
 
   <div class="footer" id="licenseFooter">
-    <div style="margin-bottom: 8px;"><strong>EnvWizard Pro</strong> <span style="opacity: 0.7;">• $9.99 one-time, lifetime</span></div>
-    <button class="btn btn-block" data-action="buyLicense">⚡ Get Pro Lifetime License</button>
-    <button class="btn btn-secondary btn-block" data-action="activateLicense">Already have a key? Activate</button>
+    <div style="margin-bottom: 6px;"><strong>EnvWizard Pro</strong> <span style="opacity: 0.7;">• coming in v0.2</span></div>
+    <div class="meta" style="margin-bottom: 6px;">Auto-unjam &amp; rerun, a live .env watcher and encrypted .env snapshots. $9.99 once for a personal license. Everything above stays free.</div>
+    <button class="btn btn-secondary btn-block" data-action="buyLicense">See what's coming</button>
   </div>
 
   <script nonce="${nonce}">
@@ -302,7 +302,7 @@ export class DevDeckViewProvider implements vscode.WebviewViewProvider {
       const footer = document.getElementById('licenseFooter');
 
       if (license && license.isPro) {
-        badge.textContent = '⭐ Lifetime Pro';
+        badge.textContent = '⭐ Pro';
         badge.classList.add('pro');
         footer.innerHTML = '<span>⭐ Pro activated — thank you for supporting EnvWizard!</span>';
       } else {

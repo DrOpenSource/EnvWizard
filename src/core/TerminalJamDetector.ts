@@ -37,7 +37,9 @@ interface JamPattern {
 
 // Ordered most specific first: the first match wins.
 const PATTERNS: JamPattern[] = [
-  // Next.js: "⚠ Port 3000 is in use, trying 3001 instead."
+  // Next.js 16+: "⚠ Port 3000 is in use by process 12140, using available port 3001 instead."
+  { kind: 'shifted', tool: 'Next.js', regex: /Port (\d+) is in use by [^,]*, using available port (\d+) instead/i, portGroup: 1, newPortGroup: 2 },
+  // Next.js (older): "⚠ Port 3000 is in use, trying 3001 instead."
   { kind: 'shifted', tool: 'Next.js', regex: /Port (\d+) is in use, trying (\d+) instead/i, portGroup: 1, newPortGroup: 2 },
   // Vite / Astro / SvelteKit: "Port 5173 is in use, trying another one..."
   { kind: 'shifted', tool: 'Vite', regex: /Port (\d+) is in use, trying another one/i, portGroup: 1 },
@@ -58,6 +60,8 @@ const PATTERNS: JamPattern[] = [
   { kind: 'blocked', tool: 'Go', regex: /listen tcp [^\s]*:(\d+): bind: address already in use/i, portGroup: 1 },
   // Django: "Error: That port is already in use."
   { kind: 'blocked', tool: 'Django', regex: /That port is already in use/i },
+  // Django on Windows reports a busy port as a permission error (WinError 10013)
+  { kind: 'blocked', tool: 'Django', regex: /You don't have permission to access that port/i, mayBeWindowsReserved: true },
   // Generic fallbacks (port inferred from the command line by the caller)
   { kind: 'blocked', tool: 'Node.js', regex: /EADDRINUSE[^\n]*?:(\d+)/i, portGroup: 1 },
   { kind: 'blocked', tool: 'Windows', regex: /Only one usage of each socket address/i },

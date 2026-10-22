@@ -150,6 +150,38 @@ function looksLikePath(val: string, platform: NodeJS.Platform): boolean {
 }
 
 /**
+ * Parses "pid ppid" lines into a PID → parent PID map.
+ */
+export function parseParentTable(output: string): Map<number, number> {
+  const table = new Map<number, number>();
+  for (const line of output.split(/\r?\n/)) {
+    const m = line.trim().match(/^(\d+)\s+(\d+)$/);
+    if (m) table.set(Number(m[1]), Number(m[2]));
+  }
+  return table;
+}
+
+// Each PowerShell spawn costs ~0.5s on Windows, so walking a parent chain reads the whole
+// process table once and reuses it briefly (a jam lookup walks the chain more than once).
+let windowsParentTable: { table: Promise<Map<number, number>>; expiresAt: number } | undefined;
+const PARENT_TABLE_TTL_MS = 2000;
+
+function getWindowsParentTable(): Promise<Map<number, number>> {
+  const now = Date.now();
+  if (!windowsParentTable || windowsParentTable.expiresAt <= now) {
+    const psCommand =
+      'powershell -NoProfile -Command "Get-CimInstance Win32_Process | ForEach-Object { \\"$($_.ProcessId) $($_.ParentProcessId)\\" }"';
+    windowsParentTable = {
+      table: execAsync(psCommand, { timeout: 5000, maxBuffer: 4 * 1024 * 1024 })
+        .then(({ stdout }) => parseParentTable(stdout))
+        .catch(() => new Map<number, number>()),
+      expiresAt: now + PARENT_TABLE_TTL_MS,
+    };
+  }
+  return windowsParentTable.table;
+}
+
+/**
  * Inspects the immediate parent PID of a process.
  */
 export async function getProcessParentPid(
@@ -161,10 +193,8 @@ export async function getProcessParentPid(
 
   try {
     if (platform === 'win32') {
-      const psCommand = `powershell -NoProfile -Command "(Get-CimInstance Win32_Process -Filter \\"ProcessId = ${pid}\\").ParentProcessId"`;
-      const { stdout } = await execAsync(psCommand, { timeout: 3000 });
-      const ppid = parseInt(stdout.trim(), 10);
-      return Number.isInteger(ppid) && ppid > 0 ? ppid : undefined;
+      const ppid = (await getWindowsParentTable()).get(pid);
+      return ppid !== undefined && ppid > 0 ? ppid : undefined;
     } else if (platform === 'linux') {
       try {
         const stat = fs.readFileSync(`/proc/${pid}/stat`, 'utf8');

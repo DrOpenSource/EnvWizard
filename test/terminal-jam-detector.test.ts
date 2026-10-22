@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { spawnSync } from 'node:child_process';
 import * as net from 'node:net';
+import realJams from './fixtures/real-jams.json';
 import {
   TerminalJamDetector,
   detectJam,
@@ -14,6 +15,8 @@ describe('detectJam', () => {
     ['Node.js', 'Error: listen EADDRINUSE: address already in use :::3000', { kind: 'blocked', port: 3000, tool: 'Node.js' }],
     ['Node.js IPv4', 'Error: listen EADDRINUSE: address already in use 127.0.0.1:4000', { kind: 'blocked', port: 4000, tool: 'Node.js' }],
     ['Next.js', ' ⚠ Port 3000 is in use, trying 3001 instead.', { kind: 'shifted', port: 3000, newPort: 3001, tool: 'Next.js' }],
+    ['Next.js 16', ' ⚠ Port 3000 is in use by process 12140, using available port 3001 instead.', { kind: 'shifted', port: 3000, newPort: 3001, tool: 'Next.js' }],
+    ['Next.js 16 (unknown holder)', ' ⚠ Port 3000 is in use by an unknown process, using available port 3001 instead.', { kind: 'shifted', port: 3000, newPort: 3001, tool: 'Next.js' }],
     ['Vite', 'Port 5173 is in use, trying another one...', { kind: 'shifted', port: 5173, tool: 'Vite' }],
     ['CRA', 'Something is already running on port 3000.', { kind: 'blocked', port: 3000, tool: 'Create React App' }],
     [
@@ -28,6 +31,7 @@ describe('detectJam', () => {
     ],
     ['Flask', 'Port 5000 is in use by another program. Either identify and stop that program, or start the server with a different port.', { kind: 'blocked', port: 5000, tool: 'Flask' }],
     ['Django', 'Error: That port is already in use.', { kind: 'blocked', tool: 'Django' }],
+    ['Django (Windows)', "Error: You don't have permission to access that port.", { kind: 'blocked', tool: 'Django', mayBeWindowsReserved: true }],
     ['Rails', 'Address already in use - bind(2) for "127.0.0.1" port 3000 (Errno::EADDRINUSE)', { kind: 'blocked', port: 3000, tool: 'Ruby' }],
     ['Bun', 'error: Failed to start server. Is port 3000 in use?', { kind: 'blocked', port: 3000, tool: 'Bun' }],
     ['Go', 'listen tcp :8080: bind: address already in use', { kind: 'blocked', port: 8080, tool: 'Go' }],
@@ -45,6 +49,17 @@ describe('detectJam', () => {
   it('ignores ordinary output', () => {
     expect(detectJam('  VITE v5.4.0  ready in 312 ms\n  ➜  Local:   http://localhost:5173/')).toBeUndefined();
     expect(detectJam('Compiled successfully. Port 3000 is your app.')).toBeUndefined();
+  });
+});
+
+// Full output captured from real runs (Windows, 2026-10-22), replayed in small chunks as a terminal streams it.
+describe('real tool output', () => {
+  it.each(realJams.map((f) => [`${f.tool} ${f.version}`, f] as const))('recognizes %s', (_name, f) => {
+    const detector = new TerminalJamDetector(f.command);
+    let jam;
+    for (let i = 0; i < f.output.length && !jam; i += 7) jam = detector.feed(f.output.slice(i, i + 7));
+    jam ??= detector.flush();
+    expect(jam).toMatchObject(f.expected);
   });
 });
 

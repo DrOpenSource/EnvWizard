@@ -13,7 +13,7 @@
 | **VS Code Marketplace** | 0.1.1 (live) |
 | **Open VSX** (Cursor, Antigravity) | 0.1.2 (live) |
 | **`main` branch** | **0.1.3**, built and ready to publish (copy-only release: removes Pro purchase prompts) |
-| **`v0.2` branch** | v0.2 groundwork: terminal jam detector, integration tests, spec. Version still 0.1.x; bumped only at release |
+| **`v0.2` branch** | Sprints 1–2 done (foundation + F1 terminal alert). Version still 0.1.x; bumped only at release |
 | **Pro sales** | **On hold** until v0.2 ships the Pro features. No licenses sold. |
 | **Website** (`index.html` → envwizard.taqnik.in) | Copy updated on `main`; **needs deploy** (`npm run deploy:site`) |
 | **CI** | GitHub Actions: unit tests on Windows/macOS/Ubuntu (green); integration job added on `v0.2` (not yet run on GitHub: it runs on PRs to `main`) |
@@ -65,7 +65,7 @@ Effort estimates are in **working sessions** (one focused session ≈ what was d
 |---|---|---|---|
 | ✅ Groundwork | Jam detector (29 tests), shell-integration feasibility proven in real VS Code, integration harness + CI job, engines `^1.93` | Done | — |
 | ✅ **Sprint 1: Foundation** | Ownership classifier (`this-terminal` / `this-project` / `other-project`); polite stop via Ctrl+C to the owning terminal; Pro gating helper (opt-in, one-time notice); Windows reserved-port helper | Done (110 unit tests passing) | — |
-| **Sprint 2: F1 terminal alert (Free)** | "Port 3000 jam → Free & Rerun" toast; shifted-port (Vite/Next) notice; graceful degradation without shell integration; confirm each non-Node error message with a real run | An integration test reproduces jam → toast action → rerun binds the port | 1–2 |
+| ✅ **Sprint 2: F1 terminal alert (Free)** | `src/extension/terminalAlert.ts`: "Port 3000 jam → Free & Rerun" toast; shifted-port (Vite/Next) notice; reserved-port explainer; degrades without shell integration; real output confirmed for 7 tools | Done (144 unit + 4 integration tests passing) | — |
 | **Sprint 3: F2 + F3** | Pro auto-unjam & rerun (opt-in, only own project/terminal); project-aware Clean Slate (multi-select) | Never touches other-project / DB / protected processes (tests) | 1–2 |
 | **Sprint 4: F4 + F5** | Pro live env watcher (per-file, debounced); Pro encrypted snapshots (AES-256-GCM, key in SecretStorage, restore with in-memory diff) | Snapshot round-trip and restore tests; no plaintext on disk | 2 |
 | **Sprint 5: F7 (+ F6 stretch) & launch prep** | `.env.example` generator, value sanity checks, multi-root; port router only if time allows; listing/README/site from `CLAIMS.md`; smoke test in Cursor and Antigravity | Release checklist in `PUBLISHING.md` §5 | 1–2 |
@@ -92,8 +92,15 @@ Effort estimates are in **working sessions** (one focused session ≈ what was d
 ## 6. Next steps (pick up here)
 
 1. *(Owner)* Publish 0.1.3 and deploy the website (§1).
-2. Start **Sprint 2: F1 terminal alert (Free)** from `V0.2_SPEC.md` §4:
-   - Hook `window.onDidStartTerminalShellExecution` in `src/extension/extension.ts` with `TerminalJamDetector`.
-   - Wire ownership classifier and show "Port jam → Free & Rerun" toast (with shifted-port notice for Vite/Next).
-   - Test end-to-end jam → toast action → rerun with an integration test.
+2. Start **Sprint 3: F2 + F3** from `V0.2_SPEC.md` §4:
+   - F2 (Pro, opt-in `envwizard.autoUnjam`): in `TerminalJamAlerts`, skip the toast and run the same free → rerun path when the holder is `this-terminal`/`this-project`, not protected, not a database. Gate with `isProFeatureEnabled('autoUnjam', …)` from `pro.ts`.
+   - F3 (Free): replace the Clean Slate modal in `actions.ts` with a multi-select QuickPick using `classify()`.
+   - Tests must prove other-project / database / protected holders are never touched automatically.
 3. At the end of the session, tick boxes in `ROADMAP.md` and update §1 and §6 of this file.
+
+### Findings from Sprint 2 (2026-10-22)
+- **VS Code has its own "free port" terminal quick fix** for `EADDRINUSE` output. In the test profile it logs `An unknown error occurred` in the renderer, even with EnvWizard's watcher off (confirmed). It isn't ours; EnvWizard's toast adds ownership, safety checks and rerun.
+- **Windows dual-stack:** a server on `[::]:8000` and another on `127.0.0.1:8000` can both bind, so there is no jam (Uvicorn ran fine next to a Node blocker). Jams only happen on the same address family/interface.
+- **On Windows, Python servers report a busy port as `WinError 10013`** (http.server, Flask, Django): the same error as a reserved port. The alert checks for a holder first, so it's only called "reserved" when nothing is listening.
+- Ancestor lookup on Windows now reads the process table once (~0.5 s, cached 2 s) instead of one PowerShell call per level (~2.5 s). A jam toast still takes a couple of seconds on Windows because process inspection uses PowerShell.
+- The integration test uses `ext.exports.terminalAlerts` (only exported in `ExtensionMode.Test`) to click the toast button.

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased (0.2.0)
+
+- **Port jams in the terminal.** When `npm run dev` (or Vite, Next.js, Uvicorn, Flask, Django…) fails because its port is taken, EnvWizard shows what is holding the port and offers **Free & Rerun**: it stops the old server and runs your command again. Free. Turn it off with `envwizard.terminalDetection`.
+- **Moved ports.** When Vite or Next.js quietly starts on another port, EnvWizard tells you and offers to free the original port and restart.
+- **Gentler stop.** A server running in one of your VS Code terminals is stopped with Ctrl+C in that terminal first, like you would do by hand.
+
 ## 0.1.3: Honest Pro information
 
 - The Dev Deck and command palette no longer offer a Pro purchase. **Pro is coming with v0.2** (auto-unjam & rerun, a live `.env` watcher and encrypted `.env` snapshots), as a $9.99 one-time personal license. Everything in the free version stays free.

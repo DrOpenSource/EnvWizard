@@ -1,6 +1,8 @@
 // Runs inside the VS Code extension host. Plain CommonJS, so no build step is needed.
 const assert = require('node:assert/strict');
 const http = require('node:http');
+const net = require('node:net');
+const { spawn } = require('node:child_process');
 const vscode = require('vscode');
 
 const tests = [];
@@ -73,6 +75,76 @@ test('terminal shell integration exposes a port-in-use error from a user command
   } finally {
     terminal.dispose();
     blocker.close();
+  }
+});
+
+function waitForShellIntegration(terminal) {
+  if (terminal.shellIntegration) return Promise.resolve(terminal.shellIntegration);
+  return withTimeout(
+    new Promise((resolve) => {
+      const sub = vscode.window.onDidChangeTerminalShellIntegration((e) => {
+        if (e.terminal === terminal) {
+          sub.dispose();
+          resolve(e.shellIntegration);
+        }
+      });
+    }),
+    20000,
+    'shell integration did not activate'
+  );
+}
+
+function canConnect(port) {
+  return new Promise((resolve) => {
+    const socket = net.connect(port, '127.0.0.1');
+    socket.once('connect', () => (socket.destroy(), resolve(true)));
+    socket.once('error', () => resolve(false));
+  });
+}
+
+async function waitFor(check, ms, what) {
+  const start = Date.now();
+  while (Date.now() - start < ms) {
+    if (await check()) return;
+    await new Promise((r) => setTimeout(r, 200));
+  }
+  throw new Error(`Timed out after ${ms}ms: ${what}`);
+}
+
+// Sprint 2 gate (F1): a jam in the terminal → toast "Free & Rerun" → the rerun binds the port.
+test('terminal jam: Free & Rerun frees the port and the rerun binds it', async () => {
+  const port = 39872;
+  const { terminalAlerts } = vscode.extensions.getExtension('dr-opensource.envwizard').exports;
+  const blocker = spawn('node', ['-e', `require('http').createServer().listen(${port})`], { stdio: 'ignore' });
+  const blockerExited = new Promise((resolve) => blocker.once('exit', resolve));
+  const terminal = vscode.window.createTerminal({ name: 'EnvWizard rerun test' });
+  const alerts = [];
+  const originalChoose = terminalAlerts.chooseAction;
+
+  try {
+    await waitFor(() => canConnect(port), 10000, 'blocker listening');
+    terminal.show();
+    const shellIntegration = await waitForShellIntegration(terminal);
+
+    terminalAlerts.chooseAction = async (alert) => {
+      alerts.push(alert);
+      return 'Free & Rerun';
+    };
+    const outcome = new Promise((resolve) => {
+      const sub = terminalAlerts.onDidHandleJam((o) => (sub.dispose(), resolve(o)));
+    });
+
+    shellIntegration.executeCommand(`node -e "require('http').createServer().listen(${port})"`);
+
+    assert.equal(await withTimeout(outcome, 45000, 'jam handled'), 'freed-rerun');
+    assert.match(alerts[0].message, new RegExp(`Port ${port} jam`));
+    await withTimeout(blockerExited, 10000, 'blocker stopped');
+    // The rerun in the terminal now holds the port
+    await waitFor(() => canConnect(port), 15000, 'rerun listening');
+  } finally {
+    terminalAlerts.chooseAction = originalChoose;
+    terminal.dispose();
+    blocker.kill();
   }
 });
 

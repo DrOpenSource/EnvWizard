@@ -9,6 +9,7 @@ import { LicenseManager } from '../core/LicenseManager.js';
 import { StatusBarController } from './StatusBar.js';
 import { DevDeckViewProvider } from './DevDeckView.js';
 import { PortServices, ProcessDetailsCache, cleanSlate, confirmAndUnjam } from './actions.js';
+import { TerminalJamAlerts } from './terminalAlert.js';
 
 // Pricing section of the website (Pro status and what's coming; see docs/CLAIMS.md)
 const PRODUCT_URL = 'https://envwizard.taqnik.in/#pricing';
@@ -62,6 +63,19 @@ export async function activate(context: vscode.ExtensionContext) {
       }
     })
   );
+
+  // F1: offer "Free & Rerun" when a dev server in the integrated terminal hits a port jam
+  const terminalAlerts = new TerminalJamAlerts({
+    services,
+    workspaceFolders: () => (vscode.workspace.workspaceFolders || []).map((f) => f.uri.fsPath),
+    isEnabled: () => vscode.workspace.getConfiguration('envwizard').get<boolean>('terminalDetection') ?? true,
+    onDidFreePort: async () => {
+      await statusBar.checkHealth();
+      await devDeckProvider.updateDeckState();
+    },
+  });
+  terminalAlerts.start();
+  context.subscriptions.push(terminalAlerts);
 
   // Re-audit when an env file is saved (debounced)
   let envRefreshTimer: NodeJS.Timeout | undefined;
@@ -244,6 +258,9 @@ export async function activate(context: vscode.ExtensionContext) {
       await vscode.env.openExternal(vscode.Uri.parse(PRODUCT_URL));
     })
   );
+
+  // Integration tests drive the terminal alert through this; nothing is exported otherwise
+  return context.extensionMode === vscode.ExtensionMode.Test ? { terminalAlerts } : undefined;
 }
 
 function summarizeKeys(keys: string[]): string {

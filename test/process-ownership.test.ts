@@ -7,6 +7,7 @@ import {
   resolveProcessAncestors,
   classifyOwnership,
   classify,
+  parseParentTable,
 } from '../src/core/ProcessOwnership.js';
 import { ProcessDetails } from '../src/shared/types.js';
 
@@ -180,6 +181,20 @@ describe('ProcessOwnership', () => {
         platform: 'linux',
       });
       expect(res).toBe('this-terminal');
+    });
+  });
+
+  describe('parent PID lookup', () => {
+    it('parses a "pid ppid" process table', () => {
+      const table = parseParentTable('4 0\r\n  1234 4\r\n\r\nnoise\r\n5678 1234\r\n');
+      expect(table.get(1234)).toBe(4);
+      expect(table.get(5678)).toBe(1234);
+      expect(table.size).toBe(3);
+    });
+
+    it('walks the real parent chain of this test process', async () => {
+      const ancestors = await resolveProcessAncestors(process.pid);
+      expect(ancestors[0]).toBe(process.ppid);
     });
   });
 });

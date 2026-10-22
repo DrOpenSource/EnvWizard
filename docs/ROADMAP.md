@@ -158,7 +158,7 @@
 - [x] **8.P3** Integration test harness + CI job on Windows / macOS / Ubuntu; `engines.vscode` → `^1.93.0`.
 - [x] **8.0** Pro sales on hold until v0.2; $9.99 one-time personal license, no machine limit (decided 2026-10-22; see `docs/CLAIMS.md`).
 - [x] **8.S1** Foundation: ownership classifier, polite stop via the owning terminal, Pro gating helper, Windows reserved ports.
-- [ ] **8.1** Terminal `EADDRINUSE` detector via shell integration: toast "Free it & rerun" (Free).
+- [x] **8.1** Terminal `EADDRINUSE` detector via shell integration: toast "Free & Rerun" (Free). Shifted-port notice (Vite/Next), reserved-port explainer, ↑-Enter fallback; integration test jam → toast → rerun binds the port; real output confirmed for Vite 8, Next.js 16, Uvicorn, Flask, Django, `http.server` on Windows.
 - [ ] **8.2** Zero-click auto-unjam + rerun for workspace-owned processes only (Pro).
 - [ ] **8.3** Project-aware Clean Slate (cwd / command line inside the workspace).
 - [ ] **8.4** Live env watcher on file save for newly referenced keys (Pro).

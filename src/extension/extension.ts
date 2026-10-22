@@ -12,6 +12,7 @@ import { PortServices, ProcessDetailsCache, cleanSlate, confirmAndUnjam } from '
 import { TerminalJamAlerts } from './terminalAlert.js';
 import { isProFeatureEnabled } from './pro.js';
 import { EnvWatcher, openEnvAtKey } from './envWatcher.js';
+import { EnvSnapshots } from './snapshots.js';
 
 // Pricing section of the website (Pro status and what's coming; see docs/CLAIMS.md)
 const PRODUCT_URL = 'https://envwizard.taqnik.in/#pricing';
@@ -85,10 +86,24 @@ export async function activate(context: vscode.ExtensionContext) {
   });
   terminalAlerts.start();
 
+  // F5 (Pro, opt-in): encrypted snapshots of env files before EnvWizard edits them and around saves
+  const snapshots = new EnvSnapshots({
+    secrets: context.secrets,
+    storageDir: context.globalStorageUri.fsPath,
+    isEnabled: () => isProFeatureEnabled('snapshots', proGating),
+    log: (line) => output.appendLine(line),
+  });
+  snapshots.start();
+  context.subscriptions.push(
+    snapshots,
+    vscode.commands.registerCommand('envwizard.restoreSnapshot', () => snapshots.restore(getWorkspaceRoot()))
+  );
+
   // F4 (Pro, opt-in): check each saved code file for env variables no env file defines
   const envWatcher = new EnvWatcher({
     healer,
     isEnabled: () => isProFeatureEnabled('envWatcher', proGating),
+    beforeEnvWrite: (envPath) => snapshots.beforeEnvWrite(envPath),
     onDidChange: () => devDeckProvider.updateDeckState(),
   });
   envWatcher.start();
@@ -97,7 +112,7 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     // A free user who turns on a Pro setting hears about it once, right away
     vscode.workspace.onDidChangeConfiguration((e) => {
-      for (const id of ['autoUnjam', 'envWatcher'] as const) {
+      for (const id of ['autoUnjam', 'envWatcher', 'snapshots'] as const) {
         if (e.affectsConfiguration(`envwizard.${id}`)) void isProFeatureEnabled(id, proGating);
       }
     })
@@ -237,7 +252,13 @@ export async function activate(context: vscode.ExtensionContext) {
       );
 
       if (choice === add) {
-        healer.appendMissingKeys(report.healTargetPath, toAdd);
+        try {
+          await snapshots.beforeEnvWrite(report.healTargetPath);
+          healer.appendMissingKeys(report.healTargetPath, toAdd);
+        } catch (err) {
+          vscode.window.showErrorMessage(`❌ Couldn't update ${targetName}: ${err instanceof Error ? err.message : String(err)}`);
+          return;
+        }
         await openEnvAtKey(report.healTargetPath, toAdd[0].key);
         vscode.window.showInformationMessage(
           `✨ Added ${toAdd.length} placeholder${toAdd.length === 1 ? '' : 's'} to ${targetName}. Paste in the real values and save.`
@@ -287,7 +308,7 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 
   // Integration tests drive the terminal alert through this; nothing is exported otherwise
-  return context.extensionMode === vscode.ExtensionMode.Test ? { terminalAlerts, envWatcher } : undefined;
+  return context.extensionMode === vscode.ExtensionMode.Test ? { terminalAlerts, envWatcher, snapshots } : undefined;
 }
 
 function summarizeKeys(keys: string[]): string {

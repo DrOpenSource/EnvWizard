@@ -2,7 +2,7 @@
 
 **Read this first in any new session.** It records where the project stands, what's been decided, and what to do next, so no context lives only in a chat. Keep it current: update the snapshot and "Next steps" at the end of every working session.
 
-*Last updated: 2026-10-22*
+*Last updated: 2026-10-23*
 
 ---
 
@@ -13,7 +13,7 @@
 | **VS Code Marketplace** | 0.1.1 (live) |
 | **Open VSX** (Cursor, Antigravity) | 0.1.2 (live) |
 | **`main` branch** | **0.1.3**, built but **not being published** (owner decision, see §2): v0.2 is the next release |
-| **`v0.2` branch** | Sprints 1–3 done (foundation, F1 terminal alert, F2 auto-unjam, F3 project-aware Clean Slate). Version still 0.1.x; bumped only at release |
+| **`v0.2` branch** | Sprints 1–4 done (foundation, F1 terminal alert, F2 auto-unjam, F3 project-aware Clean Slate, F4 live env watcher, F5 encrypted snapshots). Only Sprint 5 + release remain. Version still 0.1.x; bumped only at release |
 | **Pro sales** | **On hold** until v0.2 ships the Pro features. No licenses sold. |
 | **Website** (`index.html` → envwizard.taqnik.in) | Copy updated on `main`; **needs deploy** (`npm run deploy:site`) |
 | **CI** | GitHub Actions: unit tests on Windows/macOS/Ubuntu (green); integration job added on `v0.2` (not yet run on GitHub: it runs on PRs to `main`) |
@@ -62,8 +62,8 @@ Effort estimates are in **working sessions** (one focused session ≈ what was d
 | ✅ Groundwork | Jam detector (29 tests), shell-integration feasibility proven in real VS Code, integration harness + CI job, engines `^1.93` | Done | — |
 | ✅ **Sprint 1: Foundation** | Ownership classifier (`this-terminal` / `this-project` / `other-project`); polite stop via Ctrl+C to the owning terminal; Pro gating helper (opt-in, one-time notice); Windows reserved-port helper | Done (110 unit tests passing) | — |
 | ✅ **Sprint 2: F1 terminal alert (Free)** | `src/extension/terminalAlert.ts`: "Port 3000 jam → Free & Rerun" toast; shifted-port (Vite/Next) notice; reserved-port explainer; degrades without shell integration; real output confirmed for 7 tools | Done (144 unit + 4 integration tests passing) | — |
-| **Sprint 3: F2 + F3** | Pro auto-unjam & rerun (opt-in, only own project/terminal); project-aware Clean Slate (multi-select) | Never touches other-project / DB / protected processes (tests) | 1–2 |
-| **Sprint 4: F4 + F5** | Pro live env watcher (per-file, debounced); Pro encrypted snapshots (AES-256-GCM, key in SecretStorage, restore with in-memory diff) | Snapshot round-trip and restore tests; no plaintext on disk | 2 |
+| ✅ **Sprint 3: F2 + F3** | Pro auto-unjam & rerun (opt-in, only own project/terminal); project-aware Clean Slate (multi-select) | Done (166 unit + 5 integration tests passing) | — |
+| ✅ **Sprint 4: F4 + F5** | `envWatcher.ts`: Pro live env watcher (per-file, debounced); `EnvSnapshots.ts` + `snapshots.ts`: Pro encrypted snapshots (AES-256-GCM, key in SecretStorage, restore with in-memory diff) | Done (200 unit + 6 integration tests passing) | — |
 | **Sprint 5: F7 (+ F6 stretch) & launch prep** | `.env.example` generator, value sanity checks, multi-root; port router only if time allows; listing/README/site from `CLAIMS.md`; smoke test in Cursor and Antigravity | Release checklist in `PUBLISHING.md` §5 | 1–2 |
 | **Release 0.2.0** | Version check → bump → package → publish → **re-open Pro sales** with copy that lists only shipped Pro features | — | — |
 
@@ -87,11 +87,19 @@ Effort estimates are in **working sessions** (one focused session ≈ what was d
 
 ## 6. Next steps (pick up here)
 
-1. Start **Sprint 4: F4 + F5** from `V0.2_SPEC.md` §4:
-   - F4 (Pro, opt-in `envwizard.envWatcher`): on save of a code file, extract keys from that file only (reuse the `EnvHealer` scanner), compare with the cached audit, badge + one toast for newly missing keys. Debounce 1 s.
-   - F5 (Pro, opt-in `envwizard.snapshots`): AES-256-GCM snapshots of env files (key in `SecretStorage`), before EnvWizard writes and on save; keep 20; restore via QuickPick + virtual-document diff (no plaintext on disk). Disclose in `PRIVACY.md`.
-   - Gate: snapshot round-trip and restore tests; prove no plaintext lands on disk.
-2. At the end of the session, tick boxes in `ROADMAP.md` and update §1 and §6 of this file.
+1. Start **Sprint 5** (the last one before release) from `V0.2_SPEC.md` §4 F7 / F6:
+   - F7 (Free): `.env.example` generator (keys, values stripped, comments/order kept); soft value sanity hints; multi-root folder selector in the Dev Deck.
+   - F6 port router (Pro): stretch only. If skipped, take it out of all Pro copy (CLAIMS.md §4) before launch.
+   - Launch prep: update `docs/CLAIMS.md` §4 from what actually shipped → README / site / Gumroad listing; smoke test the VSIX in Cursor and Antigravity; run the `PUBLISHING.md` §5 checklist.
+2. Then **Release 0.2.0**: check both registries' live versions first (memory + `PUBLISHING.md` §5), bump, package, hand the owner the publish commands, re-open Pro sales.
+3. At the end of each session, tick boxes in `ROADMAP.md` and update §1 and §6 of this file.
+
+### Findings from Sprint 4 (2026-10-23)
+- **F4** (`envWatcher.ts`): on save, `EnvHealer.findMissingKeysInFile` reads only the env files that file can see (own folder + parents): no workspace rescan. One toast per key per session; a `$(key) N missing env keys` badge stays until they're defined (rechecked when an env file is saved). The Dev Deck refreshes only when a *new* missing key appears. **Opt-in (default off)** like every Pro automation; the spec's "default on for Pro" was overridden by the opt-in rule.
+- **F5** (`core/EnvSnapshots.ts`, `extension/snapshots.ts`): format `EWS1 | IV | tag | ciphertext`; the env file's relative path is the GCM additional data. Snapshots are taken: at startup (root env files, baseline), before save (disk version, via `onWillSave`), after save, and before every EnvWizard write (`beforeEnvWrite`: if the snapshot fails, EnvWizard doesn't write). Identical content is skipped; 20 kept per file.
+- **Restore is always allowed** (even with the setting off) so nobody is locked out of copies they already have. It snapshots the current version first and refuses if the file has unsaved edits.
+- **Lost key = unreadable snapshots** (SecretStorage isn't synced between machines). The restore error says so in plain words; PRIVACY.md §3 discloses it.
+- The snapshot integration test sets `snapshots.deps.isEnabled` directly (no Pro license in tests). The file-permission (0600) test only runs on macOS/Linux (CI).
 
 ### Findings from Sprint 3 (2026-10-22)
 - **F2 rule** (`canAutoUnjam` in `terminalAlert.ts`): only a *blocked* start (moved ports always ask), holder `this-project`/`this-terminal`, not protected, not a database, and the command ran inside the workspace. At most once per port per minute, so an auto-restarter can't loop. The Pro check only runs when a jam qualifies, so free users see the one-time Pro notice only when it would have helped (or when they turn the setting on).

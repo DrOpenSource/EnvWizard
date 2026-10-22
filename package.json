@@ -57,6 +57,11 @@
         "category": "EnvWizard"
       },
       {
+        "command": "envwizard.restoreSnapshot",
+        "title": "EnvWizard: Restore .env Snapshot…",
+        "category": "EnvWizard"
+      },
+      {
         "command": "envwizard.activateLicense",
         "title": "EnvWizard: Activate Pro License",
         "category": "EnvWizard"

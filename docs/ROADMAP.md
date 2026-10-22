@@ -161,8 +161,8 @@
 - [x] **8.1** Terminal `EADDRINUSE` detector via shell integration: toast "Free & Rerun" (Free). Shifted-port notice (Vite/Next), reserved-port explainer, ↑-Enter fallback; integration test jam → toast → rerun binds the port; real output confirmed for Vite 8, Next.js 16, Uvicorn, Flask, Django, `http.server` on Windows.
 - [x] **8.2** Zero-click auto-unjam + rerun for workspace-owned processes only (Pro, opt-in). Never other projects, databases, protected programs or moved ports; once per port per minute; integration-tested in real VS Code.
 - [x] **8.3** Project-aware Clean Slate: multi-select picker, this project pre-checked, other projects unchecked, databases/protected never offered.
-- [ ] **8.4** Live env watcher on file save for newly referenced keys (Pro).
-- [ ] **8.5** `.env` snapshots before edits with 1-click restore (Pro).
+- [x] **8.4** Live env watcher on file save for newly referenced keys (Pro, opt-in). Per-file check, debounced, one toast per key, status-bar badge.
+- [x] **8.5** Encrypted `.env` snapshots (AES-256-GCM, key in secret storage) at startup, around saves and before EnvWizard edits; restore with an in-memory diff preview (Pro, opt-in). Disclosed in PRIVACY.md.
 - [ ] **8.6** `.env.example` generator and value sanity checks (Free).
 - [ ] **8.7** Multi-root workspace env audits.
 - [x] **8.8** Windows: real polite shutdown (Ctrl+C to the owning terminal or `GenerateConsoleCtrlEvent`).

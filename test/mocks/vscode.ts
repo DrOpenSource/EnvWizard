@@ -37,3 +37,15 @@ export class Position {
 export class Range {
   constructor(public start: Position, public end: Position) {}
 }
+export class Uri {
+  constructor(public scheme: string, public fsPath: string, public query = '') {}
+  static file(fsPath: string) {
+    return new Uri('file', fsPath);
+  }
+  static from(parts: { scheme: string; path: string; query?: string }) {
+    return new Uri(parts.scheme, parts.path, parts.query);
+  }
+  toString() {
+    return `${this.scheme}:${this.fsPath}${this.query ? `?${this.query}` : ''}`;
+  }
+}

@@ -196,6 +196,43 @@ test('auto-unjam: an old copy of this project is freed and rerun without asking'
   }
 });
 
+// Sprint 4 (F5): saving .env in the editor keeps encrypted snapshots of the old and new versions,
+// using the editor's real secret storage; nothing readable lands in the snapshot folder.
+test('snapshots: saving .env keeps encrypted before/after copies', async () => {
+  const { snapshots } = vscode.extensions.getExtension('dr-opensource.envwizard').exports;
+  const folder = vscode.workspace.workspaceFolders[0].uri.fsPath;
+  const envPath = path.join(folder, '.env');
+  const deps = snapshots.deps;
+  const originalGate = deps.isEnabled;
+  const secret = 'sk_live_IntegrationSecret123';
+
+  try {
+    deps.isEnabled = async () => true; // A Pro license can't be activated in tests
+    const before = fs.readFileSync(envPath, 'utf8');
+    const doc = await vscode.workspace.openTextDocument(envPath);
+    const editor = await vscode.window.showTextDocument(doc);
+    await editor.edit((b) => b.insert(new vscode.Position(doc.lineCount, 0), `STRIPE_KEY=${secret}
+`));
+    await doc.save();
+
+    let contents = [];
+    await waitFor(async () => {
+      const list = snapshots.store.list(folder, envPath);
+      contents = await Promise.all(list.map((i) => snapshots.store.read(i)));
+      return contents.length >= 2;
+    }, 10000, 'two snapshots');
+    assert.ok(contents.includes(before), 'old version kept');
+    assert.ok(contents.some((c) => c.includes(secret)), 'new version kept');
+
+    for (const info of snapshots.store.list(folder, envPath)) {
+      assert.equal(fs.readFileSync(info.file).includes(Buffer.from(secret)), false, 'snapshot is encrypted');
+    }
+  } finally {
+    deps.isEnabled = originalGate;
+    await vscode.commands.executeCommand('workbench.action.closeAllEditors');
+  }
+});
+
 exports.run = async function run() {
   const failures = [];
   for (const { name, fn } of tests) {

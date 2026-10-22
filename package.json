@@ -57,6 +57,11 @@
         "category": "EnvWizard"
       },
       {
+        "command": "envwizard.generateEnvExample",
+        "title": "EnvWizard: Create or Update .env.example",
+        "category": "EnvWizard"
+      },
+      {
         "command": "envwizard.restoreSnapshot",
         "title": "EnvWizard: Restore .env Snapshot…",
         "category": "EnvWizard"

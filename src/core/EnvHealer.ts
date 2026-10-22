@@ -1,6 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { findClosingQuote, findValueHints } from './EnvTemplate.js';
 import { EnvAuditReport, EnvVariableIssue } from '../shared/types.js';
 
 export interface EnvEntry {
@@ -220,6 +221,13 @@ export class EnvHealer {
       unusedInCode,
       notGitignored: this.findUnignoredEnvFiles(workspacePath, envFilesFound),
       trackedByGit: this.findTrackedEnvFiles(workspacePath, envFilesFound),
+      valueHints: envFilesFound.flatMap((rel) => {
+        try {
+          return findValueHints(fs.readFileSync(path.join(workspacePath, rel), 'utf8'), rel);
+        } catch {
+          return [];
+        }
+      }),
     };
   }
 
@@ -478,17 +486,6 @@ function lookupKeyForFile(
     dir = path.posix.dirname(dir);
   }
   return found;
-}
-
-function findClosingQuote(val: string, quote: string): number {
-  for (let i = 1; i < val.length; i++) {
-    if (val[i] === '\\') {
-      i++;
-    } else if (val[i] === quote) {
-      return i;
-    }
-  }
-  return -1;
 }
 
 function globToRegExp(glob: string): RegExp {

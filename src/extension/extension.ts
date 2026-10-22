@@ -13,6 +13,7 @@ import { TerminalJamAlerts } from './terminalAlert.js';
 import { isProFeatureEnabled } from './pro.js';
 import { EnvWatcher, openEnvAtKey } from './envWatcher.js';
 import { EnvSnapshots } from './snapshots.js';
+import { envExampleMessage, syncEnvExample } from './envExample.js';
 
 // Pricing section of the website (Pro status and what's coming; see docs/CLAIMS.md)
 const PRODUCT_URL = 'https://envwizard.taqnik.in/#pricing';
@@ -174,8 +175,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Command: Audit & Heal .env
   context.subscriptions.push(
-    vscode.commands.registerCommand('envwizard.auditEnv', async () => {
-      const root = getWorkspaceRoot();
+    // The Dev Deck passes the folder picked in a multi-root workspace
+    vscode.commands.registerCommand('envwizard.auditEnv', async (rootArg?: string) => {
+      const root = typeof rootArg === 'string' ? rootArg : getWorkspaceRoot();
       if (!root) {
         vscode.window.showWarningMessage('Please open a project folder to check .env health.');
         return;
@@ -263,6 +265,25 @@ export async function activate(context: vscode.ExtensionContext) {
         vscode.window.showInformationMessage(
           `✨ Added ${toAdd.length} placeholder${toAdd.length === 1 ? '' : 's'} to ${targetName}. Paste in the real values and save.`
         );
+      }
+      await devDeckProvider.updateDeckState();
+    })
+  );
+
+  // Command: Create or update .env.example (keys only, never values)
+  context.subscriptions.push(
+    vscode.commands.registerCommand('envwizard.generateEnvExample', async (rootArg?: string) => {
+      const root = typeof rootArg === 'string' ? rootArg : getWorkspaceRoot();
+      if (!root) {
+        vscode.window.showWarningMessage('Please open a project folder first.');
+        return;
+      }
+      try {
+        const result = syncEnvExample(root, healer);
+        vscode.window.showInformationMessage(envExampleMessage(result));
+        if (result.kind !== 'no-env') await vscode.window.showTextDocument(vscode.Uri.file(result.examplePath));
+      } catch (err) {
+        vscode.window.showErrorMessage(`❌ Couldn't write .env.example: ${err instanceof Error ? err.message : String(err)}`);
       }
       await devDeckProvider.updateDeckState();
     })

@@ -74,6 +74,64 @@ describe('Dev Deck webview', () => {
   });
 });
 
+describe('Dev Deck v0.2 sections', () => {
+  function boot() {
+    const script = renderHtml().match(/<script nonce="[^"]+">([\s\S]*?)<\/script>/)![1];
+    const elements: Record<string, { innerHTML: string; textContent: string; classList: { add(): void } }> = {};
+    const el = (id: string) => (elements[id] ??= { innerHTML: '', textContent: '', classList: { add() {} } });
+    let onMessage: ((e: { data: unknown }) => void) | undefined;
+    vm.runInNewContext(script, {
+      acquireVsCodeApi: () => ({ postMessage() {} }),
+      document: { getElementById: el, addEventListener() {} },
+      window: { addEventListener: (_: string, fn: typeof onMessage) => (onMessage = fn) },
+    });
+    const update = (extra: Record<string, unknown>) =>
+      onMessage!({
+        data: {
+          type: 'stateUpdate',
+          scanOk: true,
+          ports: [],
+          envReport: {
+            envFilesFound: ['.env'],
+            notGitignored: [],
+            trackedByGit: [],
+            totalKeysDefined: 1,
+            missingInEnv: [],
+            emptyInEnv: [],
+            templateDrift: [],
+            valueHints: [{ key: 'API_URL', file: '.env', hint: 'doesn\'t look like a full URL <b>' }],
+          },
+          licenseStatus: { isPro: false },
+          ...extra,
+        },
+      });
+    return { elements, update };
+  }
+
+  it('shows a folder picker only for multi-root workspaces', () => {
+    const { elements, update } = boot();
+    update({ folders: [{ name: 'web', path: '/w/web' }], envRoot: '/w/web' });
+    expect(elements.folderPicker.innerHTML).toBe('');
+    update({ folders: [{ name: 'web', path: '/w/web' }, { name: 'api', path: '/w/api' }], envRoot: '/w/api' });
+    expect(elements.folderPicker.innerHTML).toContain('<option value="/w/api" selected>');
+  });
+
+  it('shows value hints (escaped) and the .env.example button even when healthy', () => {
+    const { elements, update } = boot();
+    update({});
+    expect(elements.envStatus.innerHTML).toContain('Secret box is in sync');
+    expect(elements.envStatus.innerHTML).toContain('Worth a look (1)');
+    expect(elements.envStatus.innerHTML).toContain('&lt;b&gt;');
+    expect(elements.envStatus.innerHTML).toContain('data-action="envExample"');
+  });
+
+  it('tells Pro users their features are opt-in', () => {
+    const { elements, update } = boot();
+    update({ licenseStatus: { isPro: true } });
+    expect(elements.licenseFooter.innerHTML).toContain('data-action="openSettings"');
+  });
+});
+
 describe('summarizeCommand', () => {
   it('turns a raw command line into a short, readable description', () => {
     expect(

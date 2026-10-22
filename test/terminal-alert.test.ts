@@ -17,6 +17,8 @@ import {
   DETAILS,
   SHOW_PORTS,
   freeAndRestart,
+  canAutoUnjam,
+  autoUnjamStatusText,
 } from '../src/extension/terminalAlert.js';
 import { TerminalJam } from '../src/core/TerminalJamDetector.js';
 import { PortServices } from '../src/extension/actions.js';
@@ -271,3 +273,148 @@ describe('TerminalJamAlerts', () => {
 function markEnded(alerts: TerminalJamAlerts, execution: vscode.TerminalShellExecution) {
   (alerts as unknown as { ended: WeakSet<object> }).ended.add(execution);
 }
+
+describe('canAutoUnjam (F2 safety rule)', () => {
+  const ws = ['/work/my-app'];
+  const mine = holder({ ownership: 'this-project', projectName: 'my-app' });
+
+  it('allows an old copy of this project when the command ran in the workspace', () => {
+    expect(canAutoUnjam(blocked, mine, '/work/my-app', ws)).toBe(true);
+    expect(canAutoUnjam(blocked, holder({ ownership: 'this-terminal' }), '/work/my-app/packages/web', ws)).toBe(true);
+  });
+
+  it.each([
+    ['another project', holder({ ownership: 'other-project' })],
+    ['an unknown program', holder({ ownership: 'unknown' })],
+    ['a protected program', holder({ ownership: 'this-project', isProtected: true })],
+    ['a database', holder({ ownership: 'this-project', isDatabase: true })],
+  ])('never touches %s', (_name, h) => {
+    expect(canAutoUnjam(blocked, h, '/work/my-app', ws)).toBe(false);
+  });
+
+  it('asks when the command ran outside the workspace or its folder is unknown', () => {
+    expect(canAutoUnjam(blocked, mine, '/elsewhere', ws)).toBe(false);
+    expect(canAutoUnjam(blocked, mine, undefined, ws)).toBe(false);
+  });
+
+  it('asks for moved ports and unknown ports', () => {
+    expect(canAutoUnjam({ ...blocked, kind: 'shifted', newPort: 3001 }, mine, '/work/my-app', ws)).toBe(false);
+    expect(canAutoUnjam({ ...blocked, port: undefined }, mine, '/work/my-app', ws)).toBe(false);
+    expect(canAutoUnjam(blocked, undefined, '/work/my-app', ws)).toBe(false);
+  });
+
+  it('words the status bar note calmly', () => {
+    expect(autoUnjamStatusText(3000, mine, true)).toBe('$(zap) Freed :3000 (old copy of this project) and restarted');
+    expect(autoUnjamStatusText(3000, holder({ ownership: 'this-terminal' }), false)).toBe('$(zap) Freed :3000 (a server in another terminal)');
+  });
+});
+
+describe('TerminalJamAlerts auto-unjam (F2)', () => {
+  let executeCommand: ReturnType<typeof vi.fn>;
+  let setStatus: ReturnType<typeof vi.fn>;
+
+  const terminal = () => {
+    executeCommand = vi.fn();
+    return { shellIntegration: { executeCommand }, exitStatus: undefined, show: vi.fn(), sendText: vi.fn() } as unknown as vscode.Terminal;
+  };
+  const execution = (cwd = '/work/my-app') =>
+    ({
+      cwd: { fsPath: cwd },
+      commandLine: { value: 'npm run dev', confidence: vscode.TerminalShellExecutionCommandLineConfidence.High, isTrusted: true },
+    }) as unknown as vscode.TerminalShellExecution;
+
+  function setup(opts: { holderCwd?: string; holderName?: string; enabled?: boolean } = {}) {
+    const services = {
+      scanner: { scanPort: vi.fn().mockResolvedValue({ port: 3000, pid: 4242 }) },
+      cache: { get: vi.fn().mockResolvedValue({ pid: 4242, name: opts.holderName ?? 'node', cwd: opts.holderCwd ?? '/work/my-app' }) },
+      terminator: { isProtected: vi.fn().mockReturnValue(false) },
+    } as unknown as PortServices;
+    const isAutoUnjamEnabled = vi.fn().mockResolvedValue(opts.enabled ?? true);
+    const log = vi.fn();
+    const alerts = new TerminalJamAlerts({ services, workspaceFolders: () => ['/work/my-app'], isAutoUnjamEnabled, log });
+    alerts.chooseAction = vi.fn().mockResolvedValue(undefined);
+    return { alerts, isAutoUnjamEnabled, log };
+  }
+
+  async function jamOnce(alerts: TerminalJamAlerts, exec = execution()) {
+    markEnded(alerts, exec);
+    return alerts.handleJam(blocked, terminal(), exec);
+  }
+
+  beforeEach(() => {
+    vi.mocked(politeUnjamPort).mockReset();
+    vi.mocked(politeUnjamPort).mockResolvedValue({ success: true, port: 3000, pid: 4242, message: 'ok', graceful: true });
+    setStatus = vi.fn();
+    win.setStatusBarMessage = setStatus;
+    win.showInformationMessage = vi.fn();
+    win.withProgress = vi.fn((_o: unknown, task: () => Promise<unknown>) => task());
+    win.terminals = [];
+  });
+
+  it('frees and reruns an old copy of this project without asking', async () => {
+    const { alerts, log } = setup();
+    expect(await jamOnce(alerts)).toBe('freed-rerun');
+    expect(alerts.chooseAction).not.toHaveBeenCalled();
+    expect(executeCommand).toHaveBeenCalledWith('npm run dev');
+    expect(setStatus).toHaveBeenCalledWith('$(zap) Freed :3000 (old copy of this project) and restarted', 8000);
+    // Quiet: no progress notification or toast
+    expect(win.withProgress).not.toHaveBeenCalled();
+    expect(win.showInformationMessage).not.toHaveBeenCalled();
+    expect(log.mock.calls.join('\n')).toContain('Auto-unjam port 3000');
+  });
+
+  it('shows the toast and does not even check Pro for another project', async () => {
+    const { alerts, isAutoUnjamEnabled } = setup({ holderCwd: '/elsewhere/other-app' });
+    expect(await jamOnce(alerts)).toBe('dismissed');
+    expect(isAutoUnjamEnabled).not.toHaveBeenCalled();
+    expect(alerts.chooseAction).toHaveBeenCalledTimes(1);
+    expect(politeUnjamPort).not.toHaveBeenCalled();
+  });
+
+  it('shows the toast for a database in this project', async () => {
+    const { alerts } = setup({ holderName: 'postgres' });
+    await jamOnce(alerts);
+    expect(alerts.chooseAction).toHaveBeenCalledTimes(1);
+    expect(politeUnjamPort).not.toHaveBeenCalled();
+  });
+
+  it('shows the toast when auto-unjam is off or not licensed', async () => {
+    const { alerts } = setup({ enabled: false });
+    expect(await jamOnce(alerts)).toBe('dismissed');
+    expect(alerts.chooseAction).toHaveBeenCalledTimes(1);
+    expect(politeUnjamPort).not.toHaveBeenCalled();
+  });
+
+  it("uses the terminal's folder when the shell doesn't report the command's (PowerShell)", async () => {
+    const { alerts } = setup();
+    const exec = { ...execution(), cwd: undefined } as unknown as vscode.TerminalShellExecution;
+    const term = terminal() as unknown as { shellIntegration: Record<string, unknown> };
+    term.shellIntegration.cwd = { fsPath: '/work/my-app' };
+    markEnded(alerts, exec);
+    expect(await alerts.handleJam(blocked, term as unknown as vscode.Terminal, exec)).toBe('freed-rerun');
+    expect(alerts.chooseAction).not.toHaveBeenCalled();
+  });
+
+  it('shows the toast when no folder is known at all', async () => {
+    const { alerts } = setup();
+    const exec = { ...execution(), cwd: undefined } as unknown as vscode.TerminalShellExecution;
+    markEnded(alerts, exec);
+    await alerts.handleJam(blocked, terminal(), exec);
+    expect(alerts.chooseAction).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the toast when the command ran outside the workspace', async () => {
+    const { alerts } = setup();
+    await jamOnce(alerts, execution('/tmp/scratch'));
+    expect(alerts.chooseAction).toHaveBeenCalledTimes(1);
+  });
+
+  it('asks instead of looping when the same port jams again within a minute', async () => {
+    const { alerts, log } = setup();
+    expect(await jamOnce(alerts)).toBe('freed-rerun');
+    expect(await jamOnce(alerts)).toBe('dismissed');
+    expect(alerts.chooseAction).toHaveBeenCalledTimes(1);
+    expect(politeUnjamPort).toHaveBeenCalledTimes(1);
+    expect(log.mock.calls.join('\n')).toContain('jammed again within a minute');
+  });
+});

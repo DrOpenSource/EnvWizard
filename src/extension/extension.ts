@@ -10,6 +10,7 @@ import { StatusBarController } from './StatusBar.js';
 import { DevDeckViewProvider } from './DevDeckView.js';
 import { PortServices, ProcessDetailsCache, cleanSlate, confirmAndUnjam } from './actions.js';
 import { TerminalJamAlerts } from './terminalAlert.js';
+import { isProFeatureEnabled } from './pro.js';
 
 // Pricing section of the website (Pro status and what's coming; see docs/CLAIMS.md)
 const PRODUCT_URL = 'https://envwizard.taqnik.in/#pricing';
@@ -64,7 +65,12 @@ export async function activate(context: vscode.ExtensionContext) {
     })
   );
 
-  // F1: offer "Free & Rerun" when a dev server in the integrated terminal hits a port jam
+  const output = vscode.window.createOutputChannel('EnvWizard');
+  context.subscriptions.push(output);
+  const proGating = { licenseManager, globalState: context.globalState };
+
+  // F1: offer "Free & Rerun" when a dev server in the integrated terminal hits a port jam.
+  // F2 (Pro, opt-in): free and rerun old copies of this project without asking.
   const terminalAlerts = new TerminalJamAlerts({
     services,
     workspaceFolders: () => (vscode.workspace.workspaceFolders || []).map((f) => f.uri.fsPath),
@@ -73,8 +79,16 @@ export async function activate(context: vscode.ExtensionContext) {
       await statusBar.checkHealth();
       await devDeckProvider.updateDeckState();
     },
+    isAutoUnjamEnabled: () => isProFeatureEnabled('autoUnjam', proGating),
+    log: (line) => output.appendLine(line),
   });
   terminalAlerts.start();
+  context.subscriptions.push(
+    // A free user who turns on a Pro setting hears about it once, right away
+    vscode.workspace.onDidChangeConfiguration((e) => {
+      if (e.affectsConfiguration('envwizard.autoUnjam')) void isProFeatureEnabled('autoUnjam', proGating);
+    })
+  );
   context.subscriptions.push(terminalAlerts);
 
   // Re-audit when an env file is saved (debounced)

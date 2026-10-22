@@ -172,9 +172,12 @@ function getWindowsParentTable(): Promise<Map<number, number>> {
     const psCommand =
       'powershell -NoProfile -Command "Get-CimInstance Win32_Process | ForEach-Object { \\"$($_.ProcessId) $($_.ParentProcessId)\\" }"';
     windowsParentTable = {
-      table: execAsync(psCommand, { timeout: 5000, maxBuffer: 4 * 1024 * 1024 })
+      table: execAsync(psCommand, { timeout: 8000, maxBuffer: 4 * 1024 * 1024 })
         .then(({ stdout }) => parseParentTable(stdout))
-        .catch(() => new Map<number, number>()),
+        .catch(() => {
+          windowsParentTable = undefined; // Don't keep a failed read (e.g. PowerShell slow under load)
+          return new Map<number, number>();
+        }),
       expiresAt: now + PARENT_TABLE_TTL_MS,
     };
   }
@@ -369,3 +372,19 @@ export async function classify(
 }
 
 export const classifyProcessOwnership = classify;
+
+/**
+ * Best-effort project folder name for a process: its cwd, otherwise the first
+ * non-system path in its command line (cut at node_modules, files → their folder).
+ */
+export function projectNameOf(details: ProcessDetails, platform: NodeJS.Platform = os.platform()): string | undefined {
+  const lib = platform === 'win32' ? path.win32 : path.posix;
+  if (details.cwd && !isSystemPath(details.cwd, platform)) {
+    return lib.basename(details.cwd) || undefined;
+  }
+  const candidate = extractCandidatePaths(details.commandLine || '', platform).find((p) => !isSystemPath(p, platform));
+  if (!candidate) return undefined;
+  const beforeModules = candidate.split(/[\\/]node_modules[\\/]/)[0];
+  const dir = beforeModules !== candidate || !lib.extname(candidate) ? beforeModules : lib.dirname(candidate);
+  return lib.basename(dir) || undefined;
+}

@@ -4,6 +4,7 @@ import { ProcessInspector } from '../core/ProcessInspector.js';
 import { ProcessTerminator, SafetyShieldError, isDatabaseProcess } from '../core/ProcessTerminator.js';
 import { PortInfo, ProcessDetails } from '../shared/types.js';
 import { translateError } from '../shared/glossary.js';
+import { ProcessOwnership, classify, projectNameOf } from '../core/ProcessOwnership.js';
 import { politeUnjamPort } from './terminalShutdown.js';
 
 export function getWatchedPorts(): number[] {
@@ -144,42 +145,100 @@ export async function confirmAndUnjam(port: number, services: PortServices): Pro
   );
 }
 
+/** Process IDs of the shells behind VS Code's integrated terminals. */
+export async function getTerminalShellPids(): Promise<number[]> {
+  const pids = await Promise.all((vscode.window.terminals || []).map((t) => t.processId));
+  return pids.filter((p): p is number => typeof p === 'number');
+}
+
+export interface OwnedPort extends EnrichedPort {
+  ownership: ProcessOwnership;
+  projectName?: string;
+}
+
+/** Adds who owns each server (this project, a VS Code terminal, another project). */
+export async function classifyPorts(ports: EnrichedPort[], services: PortServices): Promise<OwnedPort[]> {
+  const folders = (vscode.workspace.workspaceFolders || []).map((f) => f.uri.fsPath);
+  const terminalPids = await getTerminalShellPids();
+  return Promise.all(
+    ports.map(async (p) => {
+      const details = await services.cache.get(p.pid);
+      return { ...p, ownership: await classify(details, folders, terminalPids), projectName: projectNameOf(details) };
+    })
+  );
+}
+
+export interface CleanSlatePick extends vscode.QuickPickItem {
+  port?: number;
+  pid?: number;
+}
+
+function ownerLabel(p: OwnedPort): string {
+  switch (p.ownership) {
+    case 'this-project':
+      return 'this project';
+    case 'this-terminal':
+      return 'running in a VS Code terminal';
+    case 'other-project':
+      return p.projectName ? `project "${p.projectName}"` : 'another project';
+    default:
+      return 'unknown project';
+  }
+}
+
 /**
- * Stops dev servers on the watched ports, skipping protected programs and databases.
+ * F3: servers from this project (or its terminals) come pre-checked; other projects and
+ * unknown programs are listed unchecked; databases and protected programs can't be picked.
+ */
+export function buildCleanSlatePicks(ports: OwnedPort[]): { items: CleanSlatePick[]; leftAlone: OwnedPort[] } {
+  const stoppable = ports.filter((p) => !p.isProtected && !p.isDatabase);
+  const leftAlone = ports.filter((p) => p.isProtected || p.isDatabase);
+  const isMine = (p: OwnedPort) => p.ownership === 'this-project' || p.ownership === 'this-terminal';
+  const toItem = (p: OwnedPort): CleanSlatePick => ({
+    label: `:${p.port}  ${p.processName || 'Unknown'}`,
+    description: ownerLabel(p),
+    detail: p.summary,
+    picked: isMine(p),
+    port: p.port,
+    pid: p.pid,
+  });
+
+  const items: CleanSlatePick[] = [];
+  const mine = stoppable.filter(isMine);
+  const others = stoppable.filter((p) => !isMine(p));
+  if (mine.length) items.push({ label: 'This project', kind: vscode.QuickPickItemKind.Separator }, ...mine.map(toItem));
+  if (others.length) items.push({ label: 'Other projects (not selected)', kind: vscode.QuickPickItemKind.Separator }, ...others.map(toItem));
+  return { items, leftAlone };
+}
+
+/**
+ * Stops the dev servers the user picks on the watched ports. Databases and protected programs are never offered.
  */
 export async function cleanSlate(services: PortServices): Promise<void> {
-  const ports = await enrichPorts(await services.scanner.scanDevPorts(getWatchedPorts()), services);
+  const enriched = await enrichPorts(await services.scanner.scanDevPorts(getWatchedPorts()), services);
   if (!services.scanner.lastScanOk) {
     vscode.window.showWarningMessage(radarOfflineMessage());
     return;
   }
 
-  const targets = ports.filter((p) => !p.isProtected && !p.isDatabase);
-  const skipped = ports.filter((p) => p.isProtected || p.isDatabase);
+  const { items, leftAlone } = buildCleanSlatePicks(await classifyPorts(enriched, services));
+  const leftAloneText = leftAlone.map((p) => `:${p.port} ${p.processName} (${p.isDatabase ? 'database' : 'protected'})`).join(', ');
 
-  if (targets.length === 0) {
+  if (!items.some((i) => i.port !== undefined)) {
     vscode.window.showInformationMessage(
-      skipped.length === 0
-        ? '✨ All watched dev ports are already free!'
-        : `✨ No dev servers to stop. Left alone: ${skipped.map((p) => `:${p.port} ${p.processName}`).join(', ')}.`
+      leftAlone.length === 0 ? '✨ All watched dev ports are already free!' : `✨ No dev servers to stop. Left alone: ${leftAloneText}.`
     );
     return;
   }
 
-  const action = 'Yes, Stop Them';
-  const answer = await vscode.window.showWarningMessage(
-    `🧹 Clean Slate: stop ${targets.length} background server${targets.length === 1 ? '' : 's'}?`,
-    {
-      modal: true,
-      detail:
-        targets.map((p) => `• :${p.port} — ${p.summary || p.processName}`).join('\n') +
-        (skipped.length
-          ? `\n\nLeft alone (database or protected):\n` + skipped.map((p) => `• :${p.port} — ${p.processName}`).join('\n')
-          : ''),
-    },
-    action
-  );
-  if (answer !== action) return;
+  const picked = await vscode.window.showQuickPick(items, {
+    canPickMany: true,
+    ignoreFocusOut: true,
+    title: '🧹 Clean Slate: pick the servers to stop',
+    placeHolder: leftAlone.length ? `Left alone: ${leftAloneText}` : 'Servers from this project are already selected',
+  });
+  const targets = (picked || []).filter((i): i is CleanSlatePick & { port: number; pid: number } => i.port !== undefined && i.pid !== undefined);
+  if (targets.length === 0) return;
 
   const failures: string[] = [];
   let freed = 0;

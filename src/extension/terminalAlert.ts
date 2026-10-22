@@ -1,17 +1,17 @@
 import * as vscode from 'vscode';
-import * as path from 'node:path';
 import { TerminalJam, TerminalJamDetector } from '../core/TerminalJamDetector.js';
-import { ProcessOwnership, classify, extractCandidatePaths, isSystemPath } from '../core/ProcessOwnership.js';
+import { ProcessOwnership, classify, isPathInside, projectNameOf } from '../core/ProcessOwnership.js';
 import { SafetyShieldError, isDatabaseProcess } from '../core/ProcessTerminator.js';
 import { WindowsReservedCheckResult, checkWindowsReservedPort } from '../core/WindowsReservedPorts.js';
-import { ProcessDetails } from '../shared/types.js';
-import { PortServices, summarizeCommand } from './actions.js';
+import { PortServices, getTerminalShellPids, summarizeCommand } from './actions.js';
 import { politeUnjamPort, sendCtrlCToTerminal } from './terminalShutdown.js';
 
 export const FREE_AND_RERUN = 'Free & Rerun';
 export const RERUN = 'Rerun';
 export const DETAILS = 'Details';
 export const SHOW_PORTS = 'Show Ports';
+export { projectNameOf };
+
 export const freeAndRestart = (port: number) => `Free ${port} & Restart`;
 
 /** What is holding the jammed port, in the terms the toast needs. */
@@ -33,22 +33,6 @@ export interface JamAlert {
   actions: string[];
   /** Extra lines for the Details dialog. */
   detail?: string;
-}
-
-/**
- * Best-effort project folder name for a process: its cwd, otherwise the first
- * non-system path in its command line (cut at node_modules, files → their folder).
- */
-export function projectNameOf(details: ProcessDetails, platform: NodeJS.Platform = process.platform): string | undefined {
-  const lib = platform === 'win32' ? path.win32 : path.posix;
-  if (details.cwd && !isSystemPath(details.cwd, platform)) {
-    return lib.basename(details.cwd) || undefined;
-  }
-  const candidate = extractCandidatePaths(details.commandLine || '', platform).find((p) => !isSystemPath(p, platform));
-  if (!candidate) return undefined;
-  const beforeModules = candidate.split(/[\\/]node_modules[\\/]/)[0];
-  const dir = beforeModules !== candidate || !lib.extname(candidate) ? beforeModules : lib.dirname(candidate);
-  return lib.basename(dir) || undefined;
 }
 
 function describeHolder(h: JamHolder): string {
@@ -131,6 +115,37 @@ export function buildJamAlert(jam: TerminalJam, holder?: JamHolder, reserved?: W
   };
 }
 
+/**
+ * F2 safety rule: EnvWizard may free a port without asking only when the holder is an old copy of
+ * this project (or runs in one of its terminals), is not protected or a database, and the failed
+ * command ran from inside the workspace. Moved ports (Vite/Next still running) always ask.
+ */
+export function canAutoUnjam(
+  jam: TerminalJam,
+  holder: JamHolder | undefined,
+  commandCwd: string | undefined,
+  workspaceFolders: string[]
+): boolean {
+  return (
+    jam.kind === 'blocked' &&
+    jam.port !== undefined &&
+    !!holder &&
+    (holder.ownership === 'this-project' || holder.ownership === 'this-terminal') &&
+    !holder.isProtected &&
+    !holder.isDatabase &&
+    !!commandCwd &&
+    workspaceFolders.some((f) => isPathInside(commandCwd, f))
+  );
+}
+
+export function autoUnjamStatusText(port: number, holder: JamHolder, rerun: boolean): string {
+  const who = holder.ownership === 'this-terminal' ? 'a server in another terminal' : 'old copy of this project';
+  return `$(zap) Freed :${port} (${who})${rerun ? ' and restarted' : ''}`;
+}
+
+/** An auto-restarter (nodemon, --reload) can re-jam forever: auto-unjam a port at most once a minute. */
+const AUTO_UNJAM_COOLDOWN_MS = 60_000;
+
 export type JamOutcome = 'freed-rerun' | 'freed' | 'rerun' | 'dismissed' | 'explained' | 'failed';
 
 export interface TerminalAlertDeps {
@@ -140,11 +155,16 @@ export interface TerminalAlertDeps {
   onDidFreePort?: () => unknown;
   isEnabled?: () => boolean;
   checkReserved?: (port: number) => Promise<WindowsReservedCheckResult>;
+  /** F2 (Pro, opt-in): free and rerun without asking when `canAutoUnjam` allows it. */
+  isAutoUnjamEnabled?: () => Promise<boolean>;
+  /** Writes details of automatic actions to the EnvWizard output channel. */
+  log?: (line: string) => void;
 }
 
 /**
  * F1: watches commands run in the integrated terminal (shell integration) and, when a dev
  * server hits a port jam, offers a 1-click "Free & Rerun" right there. Free tier.
+ * F2 (Pro, opt-in): does the same without asking when `canAutoUnjam` allows it.
  * Degrades to nothing when the API or shell integration is unavailable.
  */
 export class TerminalJamAlerts implements vscode.Disposable {
@@ -156,6 +176,7 @@ export class TerminalJamAlerts implements vscode.Disposable {
   private readonly ended = new WeakSet<vscode.TerminalShellExecution>();
   private readonly endWaiters = new Map<vscode.TerminalShellExecution, () => void>();
   private readonly outcomeListeners: ((outcome: JamOutcome, jam: TerminalJam) => void)[] = [];
+  private readonly lastAutoUnjam = new Map<number, number>();
 
   constructor(private readonly deps: TerminalAlertDeps) {}
 
@@ -218,6 +239,17 @@ export class TerminalJamAlerts implements vscode.Disposable {
       jam.kind === 'blocked' && jam.port !== undefined && !holder
         ? await (this.deps.checkReserved ?? checkWindowsReservedPort)(jam.port)
         : undefined;
+
+    if (
+      holder &&
+      // PowerShell leaves execution.cwd undefined; the terminal's current folder is the fallback
+      canAutoUnjam(jam, holder, (execution.cwd ?? terminal.shellIntegration?.cwd)?.fsPath, this.deps.workspaceFolders()) &&
+      (await this.deps.isAutoUnjamEnabled?.()) &&
+      this.claimAutoUnjam(holder.port)
+    ) {
+      return this.autoUnjam(holder, terminal, execution);
+    }
+
     const alert = buildJamAlert(jam, holder, reserved);
 
     let choice = await this.chooseAction(alert);
@@ -240,6 +272,31 @@ export class TerminalJamAlerts implements vscode.Disposable {
     }
   }
 
+  private claimAutoUnjam(port: number): boolean {
+    const now = Date.now();
+    const last = this.lastAutoUnjam.get(port);
+    if (last !== undefined && now - last < AUTO_UNJAM_COOLDOWN_MS) {
+      this.deps.log?.(`Port ${port} jammed again within a minute (an auto-restarter?), so asking instead of freeing it automatically.`);
+      return false;
+    }
+    this.lastAutoUnjam.set(port, now);
+    return true;
+  }
+
+  private async autoUnjam(holder: JamHolder, terminal: vscode.Terminal, execution: vscode.TerminalShellExecution): Promise<JamOutcome> {
+    this.deps.log?.(
+      `${new Date().toLocaleTimeString()} Auto-unjam port ${holder.port}: stopping ${holder.summary || holder.name} ` +
+        `(process ${holder.pid}, ${holder.ownership === 'this-terminal' ? 'in a VS Code terminal' : 'from this project'}). ` +
+        `Rerunning: ${execution.commandLine.value}`
+    );
+    const outcome = await this.freeAndRerun(holder.port, terminal, execution, false, true);
+    if (outcome === 'freed-rerun' || outcome === 'freed') {
+      vscode.window.setStatusBarMessage(autoUnjamStatusText(holder.port, holder, outcome === 'freed-rerun'), 8000);
+    }
+    this.deps.log?.(`  → ${outcome}. To bring the old server back, run its command again: ${holder.summary || holder.name}`);
+    return outcome;
+  }
+
   private async showDetails(jam: TerminalJam, alert: JamAlert, holder?: JamHolder): Promise<string | undefined> {
     const primary = jam.kind === 'shifted' ? freeAndRestart(jam.port!) : FREE_AND_RERUN;
     const dbNote = holder?.isDatabase ? '\n\nHeads-up: this looks like a local database. Stopping it may interrupt other apps.' : '';
@@ -252,10 +309,7 @@ export class TerminalJamAlerts implements vscode.Disposable {
     if (!info) return undefined;
     const details = await cache.get(info.pid);
     const name = details.name || info.processName || 'Unknown';
-    const terminalPids = (await Promise.all((vscode.window.terminals || []).map((t) => t.processId))).filter(
-      (p): p is number => typeof p === 'number'
-    );
-    const ownership = await classify(details, this.deps.workspaceFolders(), terminalPids);
+    const ownership = await classify(details, this.deps.workspaceFolders(), await getTerminalShellPids());
     return {
       port,
       pid: info.pid,
@@ -272,7 +326,8 @@ export class TerminalJamAlerts implements vscode.Disposable {
     port: number,
     terminal: vscode.Terminal,
     execution: vscode.TerminalShellExecution,
-    restart: boolean
+    restart: boolean,
+    quiet = false
   ): Promise<JamOutcome> {
     // The failed (or shifted) command must be gone before it can run again
     if (restart) sendCtrlCToTerminal(terminal);
@@ -283,10 +338,12 @@ export class TerminalJamAlerts implements vscode.Disposable {
     }
 
     try {
-      const res = await vscode.window.withProgress(
-        { location: vscode.ProgressLocation.Notification, title: `Freeing port ${port}…` },
-        () => politeUnjamPort(port, this.deps.services)
-      );
+      const res = quiet
+        ? await politeUnjamPort(port, this.deps.services)
+        : await vscode.window.withProgress(
+            { location: vscode.ProgressLocation.Notification, title: `Freeing port ${port}…` },
+            () => politeUnjamPort(port, this.deps.services)
+          );
       await this.deps.onDidFreePort?.();
       if (!res.success) {
         vscode.window.showErrorMessage(`❌ ${res.message}`);
@@ -299,14 +356,19 @@ export class TerminalJamAlerts implements vscode.Disposable {
       return 'failed';
     }
 
-    return (await this.rerun(terminal, execution, port)) ? 'freed-rerun' : 'freed';
+    return (await this.rerun(terminal, execution, port, quiet)) ? 'freed-rerun' : 'freed';
   }
 
   /**
    * Runs the command again in its own terminal, but only when VS Code is confident it knows
    * the exact command line. Otherwise asks the user to press ↑ and Enter.
    */
-  private async rerun(terminal: vscode.Terminal, execution: vscode.TerminalShellExecution, freedPort?: number): Promise<boolean> {
+  private async rerun(
+    terminal: vscode.Terminal,
+    execution: vscode.TerminalShellExecution,
+    freedPort?: number,
+    quiet = false
+  ): Promise<boolean> {
     const freed = freedPort !== undefined ? `✨ Port ${freedPort} is free. ` : '';
     const { value, confidence } = execution.commandLine;
     const ended = this.ended.has(execution) || (await this.waitForEnd(execution, 3000));
@@ -322,7 +384,7 @@ export class TerminalJamAlerts implements vscode.Disposable {
     }
     terminal.show(true);
     terminal.shellIntegration.executeCommand(value);
-    vscode.window.showInformationMessage(`${freed}Running \`${value}\` again.`);
+    if (!quiet) vscode.window.showInformationMessage(`${freed}Running \`${value}\` again.`);
     return true;
   }
 

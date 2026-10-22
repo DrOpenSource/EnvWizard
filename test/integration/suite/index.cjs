@@ -1,6 +1,8 @@
 // Runs inside the VS Code extension host. Plain CommonJS, so no build step is needed.
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
 const http = require('node:http');
+const path = require('node:path');
 const net = require('node:net');
 const { spawn } = require('node:child_process');
 const vscode = require('vscode');
@@ -142,6 +144,52 @@ test('terminal jam: Free & Rerun frees the port and the rerun binds it', async (
     // The rerun in the terminal now holds the port
     await waitFor(() => canConnect(port), 15000, 'rerun listening');
   } finally {
+    terminalAlerts.chooseAction = originalChoose;
+    terminal.dispose();
+    blocker.kill();
+  }
+});
+
+// Sprint 3 (F2): an old copy of this project is freed and rerun without a toast. On Windows the
+// holder's folder can't be read, so this also proves "this project" is found from its command line.
+test('auto-unjam: an old copy of this project is freed and rerun without asking', async () => {
+  const port = 39873;
+  const ext = vscode.extensions.getExtension('dr-opensource.envwizard');
+  const { terminalAlerts } = ext.exports;
+  const folder = vscode.workspace.workspaceFolders[0].uri.fsPath;
+  const script = path.join(folder, 'server.js');
+  fs.writeFileSync(script, 'require("http").createServer().listen(Number(process.argv[2]));\n');
+
+  const blocker = spawn('node', [script, String(port)], { cwd: folder, stdio: 'ignore' });
+  const blockerExited = new Promise((resolve) => blocker.once('exit', resolve));
+  const terminal = vscode.window.createTerminal({ name: 'EnvWizard auto test', cwd: folder });
+  // A Pro license can't be activated in tests; switch the gate on directly
+  const deps = terminalAlerts.deps;
+  const originalGate = deps.isAutoUnjamEnabled;
+  const originalChoose = terminalAlerts.chooseAction;
+  let toastShown = false;
+
+  try {
+    deps.isAutoUnjamEnabled = async () => true;
+    terminalAlerts.chooseAction = async () => {
+      toastShown = true;
+      return undefined;
+    };
+    await waitFor(() => canConnect(port), 10000, 'blocker listening');
+    terminal.show();
+    const shellIntegration = await waitForShellIntegration(terminal);
+    const outcome = new Promise((resolve) => {
+      const sub = terminalAlerts.onDidHandleJam((o) => (sub.dispose(), resolve(o)));
+    });
+
+    shellIntegration.executeCommand(`node server.js ${port}`);
+
+    assert.equal(await withTimeout(outcome, 45000, 'jam handled'), 'freed-rerun');
+    assert.equal(toastShown, false, 'auto-unjam should not ask');
+    await withTimeout(blockerExited, 10000, 'blocker stopped');
+    await waitFor(() => canConnect(port), 15000, 'rerun listening');
+  } finally {
+    deps.isAutoUnjamEnabled = originalGate;
     terminalAlerts.chooseAction = originalChoose;
     terminal.dispose();
     blocker.kill();

@@ -12,20 +12,15 @@
 |---|---|
 | **VS Code Marketplace** | 0.1.1 (live) |
 | **Open VSX** (Cursor, Antigravity) | 0.1.2 (live) |
-| **`main` branch** | **0.1.3**, built and ready to publish (copy-only release: removes Pro purchase prompts) |
-| **`v0.2` branch** | Sprints 1–2 done (foundation + F1 terminal alert). Version still 0.1.x; bumped only at release |
+| **`main` branch** | **0.1.3**, built but **not being published** (owner decision, see §2): v0.2 is the next release |
+| **`v0.2` branch** | Sprints 1–3 done (foundation, F1 terminal alert, F2 auto-unjam, F3 project-aware Clean Slate). Version still 0.1.x; bumped only at release |
 | **Pro sales** | **On hold** until v0.2 ships the Pro features. No licenses sold. |
 | **Website** (`index.html` → envwizard.taqnik.in) | Copy updated on `main`; **needs deploy** (`npm run deploy:site`) |
 | **CI** | GitHub Actions: unit tests on Windows/macOS/Ubuntu (green); integration job added on `v0.2` (not yet run on GitHub: it runs on PRs to `main`) |
 
 ### Owner's pending actions
-1. Publish **0.1.3** to both registries (it is higher than both live versions, so they line up again):
-   ```
-   npx @vscode/vsce publish --packagePath envwizard-0.1.3.vsix
-   npx ovsx publish envwizard-0.1.3.vsix -p <OVSX_TOKEN>
-   ```
-2. Deploy the updated website: `npm run deploy:site`.
-3. Check the Gumroad product is unpublished or paused, and check that `assets/gumroad_cover.jpg` doesn't advertise unshipped features before it is ever used again.
+1. Check the Gumroad product is unpublished or paused, and check that `assets/gumroad_cover.jpg` doesn't advertise unshipped features before it is ever used again.
+2. *(Deferred, not needed)* 0.1.3 publish and website deploy: skipped by decision (§2). Don't raise them again unless the owner asks.
 
 ---
 
@@ -38,6 +33,7 @@
 | 2026-10-22 | **No servers.** At $9.99 the only affordable model is fully local; the one network call is Gumroad license verification. Support is best-effort. See [`CLAIMS.md`](CLAIMS.md) §2. |
 | 2026-10-22 | **All public copy follows [`CLAIMS.md`](CLAIMS.md)**: shipped + tested features only; measured numbers only; planned items labelled "Coming in v0.2". |
 | 2026-10-22 | Offline self-generated `ENVWIZ-` keys removed (the keygen shipped in the bundle). Gumroad keys only. |
+| 2026-10-22 | **0.1.3 will not be published** and the website not redeployed for now: no purchases or user requests so far, so there is no one to mislead. All effort goes to v0.2. |
 | 2026-10-22 | Free/Pro split for v0.2: manual 1-click fixes are free (including the terminal "Free & Rerun" alert); Pro = opt-in automation and safety nets (auto-unjam, live env watcher, encrypted snapshots, port router). |
 
 ---
@@ -91,12 +87,20 @@ Effort estimates are in **working sessions** (one focused session ≈ what was d
 
 ## 6. Next steps (pick up here)
 
-1. *(Owner)* Publish 0.1.3 and deploy the website (§1).
-2. Start **Sprint 3: F2 + F3** from `V0.2_SPEC.md` §4:
-   - F2 (Pro, opt-in `envwizard.autoUnjam`): in `TerminalJamAlerts`, skip the toast and run the same free → rerun path when the holder is `this-terminal`/`this-project`, not protected, not a database. Gate with `isProFeatureEnabled('autoUnjam', …)` from `pro.ts`.
-   - F3 (Free): replace the Clean Slate modal in `actions.ts` with a multi-select QuickPick using `classify()`.
-   - Tests must prove other-project / database / protected holders are never touched automatically.
-3. At the end of the session, tick boxes in `ROADMAP.md` and update §1 and §6 of this file.
+1. Start **Sprint 4: F4 + F5** from `V0.2_SPEC.md` §4:
+   - F4 (Pro, opt-in `envwizard.envWatcher`): on save of a code file, extract keys from that file only (reuse the `EnvHealer` scanner), compare with the cached audit, badge + one toast for newly missing keys. Debounce 1 s.
+   - F5 (Pro, opt-in `envwizard.snapshots`): AES-256-GCM snapshots of env files (key in `SecretStorage`), before EnvWizard writes and on save; keep 20; restore via QuickPick + virtual-document diff (no plaintext on disk). Disclose in `PRIVACY.md`.
+   - Gate: snapshot round-trip and restore tests; prove no plaintext lands on disk.
+2. At the end of the session, tick boxes in `ROADMAP.md` and update §1 and §6 of this file.
+
+### Findings from Sprint 3 (2026-10-22)
+- **F2 rule** (`canAutoUnjam` in `terminalAlert.ts`): only a *blocked* start (moved ports always ask), holder `this-project`/`this-terminal`, not protected, not a database, and the command ran inside the workspace. At most once per port per minute, so an auto-restarter can't loop. The Pro check only runs when a jam qualifies, so free users see the one-time Pro notice only when it would have helped (or when they turn the setting on).
+- **PowerShell leaves `execution.cwd` undefined**; the code falls back to `terminal.shellIntegration.cwd`. Only the real-editor test caught this: without it, auto-unjam never fired on Windows.
+- On Windows "this project" comes from paths in the holder's command line (cwd isn't readable); proven by the auto-unjam integration test (`node server.js` started in the workspace).
+- Details of every automatic action go to the **EnvWizard** Output channel.
+- F3: Clean Slate is now a multi-select QuickPick (`buildCleanSlatePicks` in `actions.ts`). Databases/protected programs aren't pickable; they're named in the placeholder.
+- **Flaky once, cause unknown:** one integration run failed both terminal tests; 6 runs before and after passed, including runs straight after `npm test`. Watch CI; if it recurs, capture the assertion output.
+- The auto-unjam integration test sets `terminalAlerts.deps.isAutoUnjamEnabled` directly (a Pro license can't be activated in tests).
 
 ### Findings from Sprint 2 (2026-10-22)
 - **VS Code has its own "free port" terminal quick fix** for `EADDRINUSE` output. In the test profile it logs `An unknown error occurred` in the renderer, even with EnvWizard's watcher off (confirmed). It isn't ours; EnvWizard's toast adds ownership, safety checks and rerun.

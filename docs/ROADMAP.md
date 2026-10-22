@@ -146,7 +146,7 @@
 - [x] **7.12** Version check: both registries were on 0.1.1 on 2026-10-22, so 0.1.2 is the correct next version.
 - [x] **7.13** 0.1.2 published to Open VSX (byte-identical to the local build). The Marketplace was skipped, with 0.1.3 going to both.
 - [x] **7.14** 0.1.3 copy release: Pro purchase prompts removed (sales on hold), personal license (no machine limit), all copy aligned with `docs/CLAIMS.md`; `docs/HANDOFF.md` added.
-- [ ] **7.15** Publish `envwizard-0.1.3.vsix` to the VS Code Marketplace and Open VSX, and deploy the website (owner).
+- [ ] ~~**7.15** Publish `envwizard-0.1.3.vsix` and deploy the website~~: deferred by the owner (no users waiting); v0.2 is the next release.
 
 ## 📌 Phase 8: v0.2 Make Pro Real & Meet Users at the Error
 **Goal**: Detect jams where they happen (the terminal) and ship the Pro features already being sold.
@@ -159,8 +159,8 @@
 - [x] **8.0** Pro sales on hold until v0.2; $9.99 one-time personal license, no machine limit (decided 2026-10-22; see `docs/CLAIMS.md`).
 - [x] **8.S1** Foundation: ownership classifier, polite stop via the owning terminal, Pro gating helper, Windows reserved ports.
 - [x] **8.1** Terminal `EADDRINUSE` detector via shell integration: toast "Free & Rerun" (Free). Shifted-port notice (Vite/Next), reserved-port explainer, ↑-Enter fallback; integration test jam → toast → rerun binds the port; real output confirmed for Vite 8, Next.js 16, Uvicorn, Flask, Django, `http.server` on Windows.
-- [ ] **8.2** Zero-click auto-unjam + rerun for workspace-owned processes only (Pro).
-- [ ] **8.3** Project-aware Clean Slate (cwd / command line inside the workspace).
+- [x] **8.2** Zero-click auto-unjam + rerun for workspace-owned processes only (Pro, opt-in). Never other projects, databases, protected programs or moved ports; once per port per minute; integration-tested in real VS Code.
+- [x] **8.3** Project-aware Clean Slate: multi-select picker, this project pre-checked, other projects unchecked, databases/protected never offered.
 - [ ] **8.4** Live env watcher on file save for newly referenced keys (Pro).
 - [ ] **8.5** `.env` snapshots before edits with 1-click restore (Pro).
 - [ ] **8.6** `.env.example` generator and value sanity checks (Free).

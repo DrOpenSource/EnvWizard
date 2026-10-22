@@ -4,6 +4,8 @@
 
 - **Port jams in the terminal.** When `npm run dev` (or Vite, Next.js, Uvicorn, Flask, Django…) fails because its port is taken, EnvWizard shows what is holding the port and offers **Free & Rerun**: it stops the old server and runs your command again. Free. Turn it off with `envwizard.terminalDetection`.
 - **Moved ports.** When Vite or Next.js quietly starts on another port, EnvWizard tells you and offers to free the original port and restart.
+- **Pro: Auto-Unjam & Rerun** (opt-in, `envwizard.autoUnjam`). When an old copy of *this* project is holding the port, EnvWizard frees it and reruns your command without asking, and notes it in the status bar. It never touches other projects, databases or protected programs, and it asks instead if the same port jams again within a minute. Details go to the EnvWizard output panel.
+- **Clean Slate picks by project.** Clean Slate now lists running servers with servers from this project already ticked and other projects unticked, so you choose exactly what stops. Databases and protected programs are never offered.
 - **Gentler stop.** A server running in one of your VS Code terminals is stopped with Ctrl+C in that terminal first, like you would do by hand.
 
 ## 0.1.3: Honest Pro information

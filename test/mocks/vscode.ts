@@ -23,3 +23,7 @@ export enum ExtensionMode {
   Development = 2,
   Test = 3,
 }
+export enum QuickPickItemKind {
+  Separator = -1,
+  Default = 0,
+}

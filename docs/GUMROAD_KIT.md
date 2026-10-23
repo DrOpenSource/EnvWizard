@@ -13,7 +13,7 @@
 | **Price** | `$9.99` |
 | **Currency** | `USD ($)` |
 | **Custom URL Slug** | `envwizard` (Result: `https://kashyapster867.gumroad.com/l/envwizard`) |
-| **Cover Image** | Upload `assets/gumroad_cover.jpg` (16:9 1280×720). **Check the image text first:** it must not show features or claims that aren't shipped. |
+| **Cover Image** | Upload `assets/gumroad_cover.png` (16:9 1280×720). Redone 2026-10-23 to match 0.2.0; the old cover said "Zero-Click", "AST" and ".env Healer". |
 | **Thumbnail Image** | Upload `assets/gumroad_thumbnail.jpg` (1:1 600×600) |
 
 ---

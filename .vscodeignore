@@ -16,7 +16,7 @@ scripts/**
 wrangler.jsonc
 AGENTS.md
 index.html
-assets/gumroad_*.jpg
+assets/gumroad_*
 assets/icon.svg
 .github/**
 .vscode-test/**

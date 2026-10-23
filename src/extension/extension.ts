@@ -9,8 +9,13 @@ import { LicenseManager } from '../core/LicenseManager.js';
 import { StatusBarController } from './StatusBar.js';
 import { DevDeckViewProvider } from './DevDeckView.js';
 import { PortServices, ProcessDetailsCache, cleanSlate, confirmAndUnjam } from './actions.js';
+import { TerminalJamAlerts } from './terminalAlert.js';
+import { isProFeatureEnabled } from './pro.js';
+import { EnvWatcher, openEnvAtKey } from './envWatcher.js';
+import { EnvSnapshots } from './snapshots.js';
+import { envExampleMessage, syncEnvExample } from './envExample.js';
 
-// Pricing section of the website (Pro status and what's coming; see docs/CLAIMS.md)
+// Pricing section of the website (what Pro includes and where to buy it; see docs/CLAIMS.md)
 const PRODUCT_URL = 'https://envwizard.taqnik.in/#pricing';
 
 /**
@@ -62,6 +67,58 @@ export async function activate(context: vscode.ExtensionContext) {
       }
     })
   );
+
+  const output = vscode.window.createOutputChannel('EnvWizard');
+  context.subscriptions.push(output);
+  const proGating = { licenseManager, globalState: context.globalState };
+
+  // F1: offer "Free & Rerun" when a dev server in the integrated terminal hits a port jam.
+  // F2 (Pro, opt-in): free and rerun old copies of this project without asking.
+  const terminalAlerts = new TerminalJamAlerts({
+    services,
+    workspaceFolders: () => (vscode.workspace.workspaceFolders || []).map((f) => f.uri.fsPath),
+    isEnabled: () => vscode.workspace.getConfiguration('envwizard').get<boolean>('terminalDetection') ?? true,
+    onDidFreePort: async () => {
+      await statusBar.checkHealth();
+      await devDeckProvider.updateDeckState();
+    },
+    isAutoUnjamEnabled: () => isProFeatureEnabled('autoUnjam', proGating),
+    log: (line) => output.appendLine(line),
+  });
+  terminalAlerts.start();
+
+  // F5 (Pro, opt-in): encrypted snapshots of env files before EnvWizard edits them and around saves
+  const snapshots = new EnvSnapshots({
+    secrets: context.secrets,
+    storageDir: context.globalStorageUri.fsPath,
+    isEnabled: () => isProFeatureEnabled('snapshots', proGating),
+    log: (line) => output.appendLine(line),
+  });
+  snapshots.start();
+  context.subscriptions.push(
+    snapshots,
+    vscode.commands.registerCommand('envwizard.restoreSnapshot', () => snapshots.restore(getWorkspaceRoot()))
+  );
+
+  // F4 (Pro, opt-in): check each saved code file for env variables no env file defines
+  const envWatcher = new EnvWatcher({
+    healer,
+    isEnabled: () => isProFeatureEnabled('envWatcher', proGating),
+    beforeEnvWrite: (envPath) => snapshots.beforeEnvWrite(envPath),
+    onDidChange: () => devDeckProvider.updateDeckState(),
+  });
+  envWatcher.start();
+  context.subscriptions.push(envWatcher);
+
+  context.subscriptions.push(
+    // A free user who turns on a Pro setting hears about it once, right away
+    vscode.workspace.onDidChangeConfiguration((e) => {
+      for (const id of ['autoUnjam', 'envWatcher', 'snapshots'] as const) {
+        if (e.affectsConfiguration(`envwizard.${id}`)) void isProFeatureEnabled(id, proGating);
+      }
+    })
+  );
+  context.subscriptions.push(terminalAlerts);
 
   // Re-audit when an env file is saved (debounced)
   let envRefreshTimer: NodeJS.Timeout | undefined;
@@ -118,8 +175,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Command: Audit & Heal .env
   context.subscriptions.push(
-    vscode.commands.registerCommand('envwizard.auditEnv', async () => {
-      const root = getWorkspaceRoot();
+    // The Dev Deck passes the folder picked in a multi-root workspace
+    vscode.commands.registerCommand('envwizard.auditEnv', async (rootArg?: string) => {
+      const root = typeof rootArg === 'string' ? rootArg : getWorkspaceRoot();
       if (!root) {
         vscode.window.showWarningMessage('Please open a project folder to check .env health.');
         return;
@@ -196,11 +254,36 @@ export async function activate(context: vscode.ExtensionContext) {
       );
 
       if (choice === add) {
-        healer.appendMissingKeys(report.healTargetPath, toAdd);
+        try {
+          await snapshots.beforeEnvWrite(report.healTargetPath);
+          healer.appendMissingKeys(report.healTargetPath, toAdd);
+        } catch (err) {
+          vscode.window.showErrorMessage(`❌ Couldn't update ${targetName}: ${err instanceof Error ? err.message : String(err)}`);
+          return;
+        }
         await openEnvAtKey(report.healTargetPath, toAdd[0].key);
         vscode.window.showInformationMessage(
           `✨ Added ${toAdd.length} placeholder${toAdd.length === 1 ? '' : 's'} to ${targetName}. Paste in the real values and save.`
         );
+      }
+      await devDeckProvider.updateDeckState();
+    })
+  );
+
+  // Command: Create or update .env.example (keys only, never values)
+  context.subscriptions.push(
+    vscode.commands.registerCommand('envwizard.generateEnvExample', async (rootArg?: string) => {
+      const root = typeof rootArg === 'string' ? rootArg : getWorkspaceRoot();
+      if (!root) {
+        vscode.window.showWarningMessage('Please open a project folder first.');
+        return;
+      }
+      try {
+        const result = syncEnvExample(root, healer);
+        vscode.window.showInformationMessage(envExampleMessage(result));
+        if (result.kind !== 'no-env') await vscode.window.showTextDocument(vscode.Uri.file(result.examplePath));
+      } catch (err) {
+        vscode.window.showErrorMessage(`❌ Couldn't write .env.example: ${err instanceof Error ? err.message : String(err)}`);
       }
       await devDeckProvider.updateDeckState();
     })
@@ -223,7 +306,16 @@ export async function activate(context: vscode.ExtensionContext) {
       );
       if (success) {
         await context.secrets.store('envwizard_license_key', input.trim());
-        vscode.window.showInformationMessage('⭐ EnvWizard Pro activated. Thank you for your support!');
+        // Every Pro feature is opt-in, so point new Pro users at the switches
+        const turnOn = 'Turn On Pro Features';
+        void vscode.window
+          .showInformationMessage(
+            '⭐ EnvWizard Pro activated. Thank you for your support! Pro features are off until you turn them on.',
+            turnOn
+          )
+          .then((choice) => {
+            if (choice === turnOn) void vscode.commands.executeCommand('workbench.action.openSettings', 'envwizard');
+          });
       } else if (licenseManager.lastActivationError === 'offline') {
         vscode.window.showErrorMessage(
           "🌐 Couldn't reach the license server. Activation needs internet once; after that Pro works offline."
@@ -244,17 +336,13 @@ export async function activate(context: vscode.ExtensionContext) {
       await vscode.env.openExternal(vscode.Uri.parse(PRODUCT_URL));
     })
   );
+
+  // Integration tests drive the terminal alert through this; nothing is exported otherwise
+  return context.extensionMode === vscode.ExtensionMode.Test ? { terminalAlerts, envWatcher, snapshots } : undefined;
 }
 
 function summarizeKeys(keys: string[]): string {
   return keys.length <= 4 ? keys.join(', ') : `${keys.slice(0, 4).join(', ')} +${keys.length - 4} more`;
-}
-
-async function openEnvAtKey(envPath: string, key: string) {
-  const doc = await vscode.workspace.openTextDocument(envPath);
-  const line = doc.getText().split(/\r?\n/).findIndex((l) => l.startsWith(`${key}=`));
-  const pos = new vscode.Position(Math.max(0, line), key.length + 1);
-  await vscode.window.showTextDocument(doc, { selection: new vscode.Range(pos, pos) });
 }
 
 /**

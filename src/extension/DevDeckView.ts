@@ -8,6 +8,8 @@ import { PortServices, enrichPorts, getWatchedPorts } from './actions.js';
 export class DevDeckViewProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = 'envwizard.devDeck';
   private view?: vscode.WebviewView;
+  /** Folder picked in the deck's selector (multi-root workspaces). */
+  private selectedFolder?: string;
 
   constructor(
     private readonly extensionUri: vscode.Uri,
@@ -50,7 +52,19 @@ export class DevDeckViewProvider implements vscode.WebviewViewProvider {
           await vscode.commands.executeCommand('envwizard.cleanSlate');
           break;
         case 'healEnv':
-          await vscode.commands.executeCommand('envwizard.auditEnv');
+          await vscode.commands.executeCommand('envwizard.auditEnv', this.envRoot());
+          break;
+        case 'envExample':
+          await vscode.commands.executeCommand('envwizard.generateEnvExample', this.envRoot());
+          break;
+        case 'selectFolder':
+          if (typeof data.path === 'string') {
+            this.selectedFolder = data.path;
+            await this.updateDeckState();
+          }
+          break;
+        case 'openSettings':
+          await vscode.commands.executeCommand('workbench.action.openSettings', 'envwizard');
           break;
         case 'activateLicense':
           await vscode.commands.executeCommand('envwizard.activateLicense');
@@ -79,19 +93,28 @@ export class DevDeckViewProvider implements vscode.WebviewViewProvider {
     try {
       const raw = await this.services.scanner.scanDevPorts(getWatchedPorts());
       const ports = await enrichPorts(raw, this.services);
-      const root = this.getWorkspaceRoot();
+      const root = this.envRoot();
       const envReport = root ? this.healer.auditWorkspace(root) : null;
+      const folders = (vscode.workspace.workspaceFolders || []).map((f) => ({ name: f.name, path: f.uri.fsPath }));
 
       this.view.webview.postMessage({
         type: 'stateUpdate',
         ports,
         scanOk: this.services.scanner.lastScanOk,
         envReport,
+        folders,
+        envRoot: root,
         licenseStatus: this.licenseManager.getStatus(),
       });
     } catch {
       // Quiet
     }
+  }
+
+  /** The folder whose env files the deck shows: the picked one while it is still open, else the default. */
+  private envRoot(): string | undefined {
+    const open = (vscode.workspace.workspaceFolders || []).map((f) => f.uri.fsPath);
+    return this.selectedFolder && open.includes(this.selectedFolder) ? this.selectedFolder : this.getWorkspaceRoot();
   }
 
   private getHtmlForWebview(webview: vscode.Webview): string {
@@ -164,6 +187,11 @@ export class DevDeckViewProvider implements vscode.WebviewViewProvider {
     .issue { display: flex; justify-content: space-between; gap: 8px; padding: 4px 0; border-bottom: 1px solid var(--border); font-size: 0.85em; }
     .issue code { font-family: var(--vscode-editor-font-family, monospace); }
     .issue .where { opacity: 0.6; font-size: 0.85em; text-align: right; overflow-wrap: anywhere; }
+    .folder-select {
+      width: 100%; margin-bottom: 8px; padding: 4px; font: inherit;
+      background: var(--vscode-dropdown-background); color: var(--vscode-dropdown-foreground);
+      border: 1px solid var(--vscode-dropdown-border, var(--border)); border-radius: 4px;
+    }
     .footer { margin-top: 24px; padding-top: 12px; border-top: 1px solid var(--border); text-align: center; font-size: 0.8em; }
   </style>
 </head>
@@ -185,12 +213,14 @@ export class DevDeckViewProvider implements vscode.WebviewViewProvider {
   <div id="portsList"><div class="empty-state">Scanning ports…</div></div>
 
   <div class="section-title"><span>Secret Box (.env) Health</span></div>
+  <div id="folderPicker"></div>
   <div id="envStatus"><div class="empty-state">Scanning workspace…</div></div>
 
   <div class="footer" id="licenseFooter">
-    <div style="margin-bottom: 6px;"><strong>EnvWizard Pro</strong> <span style="opacity: 0.7;">• coming in v0.2</span></div>
-    <div class="meta" style="margin-bottom: 6px;">Auto-unjam &amp; rerun, a live .env watcher and encrypted .env snapshots. $9.99 once for a personal license. Everything above stays free.</div>
-    <button class="btn btn-secondary btn-block" data-action="buyLicense">See what's coming</button>
+    <div style="margin-bottom: 6px;"><strong>EnvWizard Pro</strong> <span style="opacity: 0.7;">• $9.99 once</span></div>
+    <div class="meta" style="margin-bottom: 6px;">Hands-free extras: auto-unjam &amp; rerun, a live .env watcher and encrypted .env snapshots. A personal license for all your own machines that never expires. Everything above stays free.</div>
+    <button class="btn btn-secondary btn-block" data-action="buyLicense">About Pro</button>
+    <button class="btn btn-secondary btn-block" data-action="activateLicense">I have a license key</button>
   </div>
 
   <script nonce="${nonce}">
@@ -211,10 +241,26 @@ export class DevDeckViewProvider implements vscode.WebviewViewProvider {
       send(target.dataset.action, port ? { port } : {});
     });
 
+    document.addEventListener('change', (event) => {
+      if (event.target.id === 'folderSelect') send('selectFolder', { path: event.target.value });
+    });
+
+    function renderFolders(folders, current) {
+      const picker = document.getElementById('folderPicker');
+      if (!folders || folders.length < 2) {
+        picker.innerHTML = '';
+        return;
+      }
+      picker.innerHTML = '<select id="folderSelect" class="folder-select" aria-label="Project folder">'
+        + folders.map((f) => '<option value="' + esc(f.path) + '"' + (f.path === current ? ' selected' : '') + '>📁 ' + esc(f.name) + '</option>').join('')
+        + '</select>';
+    }
+
     window.addEventListener('message', (event) => {
       const msg = event.data;
       if (msg.type === 'stateUpdate') {
         renderPorts(msg.ports || [], msg.scanOk);
+        renderFolders(msg.folders, msg.envRoot);
         renderEnv(msg.envReport);
         renderLicense(msg.licenseStatus);
       } else if (msg.type === 'ports') {
@@ -282,18 +328,27 @@ export class DevDeckViewProvider implements vscode.WebviewViewProvider {
 
       if (total === 0) {
         html += '<div class="empty-state">✅ Secret box is in sync with your code (' + esc(report.totalKeysDefined) + ' keys in ' + esc(files) + ')</div>';
-        container.innerHTML = html;
-        return;
+      } else {
+        const usedIn = (m) => 'used in ' + m.sourceFiles.slice(0, 2).join(', ') + (m.sourceFiles.length > 2 ? ' +' + (m.sourceFiles.length - 2) : '');
+        html += '<div class="card">';
+        html += issueList('🧩 Missing (' + report.missingInEnv.length + ')', 'amber', report.missingInEnv, usedIn);
+        html += issueList('✏️ Empty — needs a value (' + report.emptyInEnv.length + ')', 'amber', report.emptyInEnv, usedIn);
+        html += issueList('📋 In .env.example only (' + report.templateDrift.length + ')', '', report.templateDrift, () => 'template');
+        html += '<div class="meta" style="margin-top: 6px;">Checked: ' + esc(files) + '</div>';
+        html += '<button class="btn btn-block" data-action="healEnv">✨ Fix .env…</button>';
+        html += '</div>';
       }
 
-      const usedIn = (m) => 'used in ' + m.sourceFiles.slice(0, 2).join(', ') + (m.sourceFiles.length > 2 ? ' +' + (m.sourceFiles.length - 2) : '');
-      html += '<div class="card">';
-      html += issueList('🧩 Missing (' + report.missingInEnv.length + ')', 'amber', report.missingInEnv, usedIn);
-      html += issueList('✏️ Empty — needs a value (' + report.emptyInEnv.length + ')', 'amber', report.emptyInEnv, usedIn);
-      html += issueList('📋 In .env.example only (' + report.templateDrift.length + ')', '', report.templateDrift, () => 'template');
-      html += '<div class="meta" style="margin-top: 6px;">Checked: ' + esc(files) + '</div>';
-      html += '<button class="btn btn-block" data-action="healEnv">✨ Fix .env…</button>';
-      html += '</div>';
+      const hints = report.valueHints || [];
+      if (hints.length) {
+        html += '<div class="card"><div class="issue-head">💡 Worth a look (' + hints.length + ')</div>'
+          + hints.map((h) => '<div class="issue"><span><code>' + esc(h.key) + '</code> ' + esc(h.hint) + '</span><span class="where">' + esc(h.file) + '</span></div>').join('')
+          + '</div>';
+      }
+
+      if ((report.envFilesFound || []).length) {
+        html += '<button class="btn btn-secondary btn-block" data-action="envExample">📄 Create / update .env.example</button>';
+      }
       container.innerHTML = html;
     }
 
@@ -304,7 +359,9 @@ export class DevDeckViewProvider implements vscode.WebviewViewProvider {
       if (license && license.isPro) {
         badge.textContent = '⭐ Pro';
         badge.classList.add('pro');
-        footer.innerHTML = '<span>⭐ Pro activated — thank you for supporting EnvWizard!</span>';
+        footer.innerHTML = '<div>⭐ Pro activated. Thank you for supporting EnvWizard!</div>'
+          + '<div class="meta" style="margin: 6px 0;">Pro features are off until you turn them on: Auto Unjam, Env Watcher and Snapshots.</div>'
+          + '<button class="btn btn-secondary btn-block" data-action="openSettings">⚙️ Turn on Pro features</button>';
       } else {
         badge.textContent = 'Free';
       }

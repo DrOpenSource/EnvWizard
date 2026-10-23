@@ -144,19 +144,28 @@
 - [x] **7.10** Monorepo env files (per-package scope); detect already-committed env files + `git rm --cached`; icon.png 420→95 KB.
 - [x] **7.11** GitHub Actions CI matrix (Windows / macOS / Ubuntu).
 - [x] **7.12** Version check: both registries were on 0.1.1 on 2026-10-22, so 0.1.2 is the correct next version.
-- [ ] **7.13** Publish `envwizard-0.1.2.vsix` to the VS Code Marketplace and Open VSX (manual, by the owner).
+- [x] **7.13** 0.1.2 published to Open VSX (byte-identical to the local build). The Marketplace was skipped, with 0.1.3 going to both.
+- [x] **7.14** 0.1.3 copy release: Pro purchase prompts removed (sales on hold), personal license (no machine limit), all copy aligned with `docs/CLAIMS.md`; `docs/HANDOFF.md` added.
+- [ ] ~~**7.15** Publish `envwizard-0.1.3.vsix` and deploy the website~~: deferred by the owner (no users waiting); v0.2 is the next release.
 
 ## 📌 Phase 8: v0.2 Make Pro Real & Meet Users at the Error
 **Goal**: Detect jams where they happen (the terminal) and ship the Pro features already being sold.
 
-- [ ] **8.0** Decide Pro sales stance (pause vs. "early supporter") and fix README/Gumroad copy accordingly.
-- [ ] **8.1** Terminal `EADDRINUSE` detector via shell integration: toast "Free it & rerun" (Free).
-- [ ] **8.2** Zero-click auto-unjam + rerun for workspace-owned processes only (Pro).
-- [ ] **8.3** Project-aware Clean Slate (cwd / command line inside the workspace).
-- [ ] **8.4** Live env watcher on file save for newly referenced keys (Pro).
-- [ ] **8.5** `.env` snapshots before edits with 1-click restore (Pro).
-- [ ] **8.6** `.env.example` generator and value sanity checks (Free).
-- [ ] **8.7** Multi-root workspace env audits.
-- [ ] **8.8** Windows: real polite shutdown (Ctrl+C to the owning terminal or `GenerateConsoleCtrlEvent`).
-- [ ] **8.9** Enforce the 3-machine license limit without counting reinstalls.
-- [ ] **8.10** VS Code integration test (test-electron) in CI on every release.
+> Full design: [`docs/V0.2_SPEC.md`](V0.2_SPEC.md). Work happens on the `v0.2` branch.
+
+- [x] **8.P1** `TerminalJamDetector` core (10+ tools, streamed/ANSI-safe, port inference, Windows reserved-port hint).
+- [x] **8.P2** Feasibility spike: shell-integration output reading proven in real VS Code 1.120 (integration test).
+- [x] **8.P3** Integration test harness + CI job on Windows / macOS / Ubuntu; `engines.vscode` → `^1.93.0`.
+- [x] **8.0** Pro sales on hold until v0.2; $9.99 one-time personal license, no machine limit (decided 2026-10-22; see `docs/CLAIMS.md`).
+- [x] **8.S1** Foundation: ownership classifier, polite stop via the owning terminal, Pro gating helper, Windows reserved ports.
+- [x] **8.1** Terminal `EADDRINUSE` detector via shell integration: toast "Free & Rerun" (Free). Shifted-port notice (Vite/Next), reserved-port explainer, ↑-Enter fallback; integration test jam → toast → rerun binds the port; real output confirmed for Vite 8, Next.js 16, Uvicorn, Flask, Django, `http.server` on Windows.
+- [x] **8.2** Zero-click auto-unjam + rerun for workspace-owned processes only (Pro, opt-in). Never other projects, databases, protected programs or moved ports; once per port per minute; integration-tested in real VS Code.
+- [x] **8.3** Project-aware Clean Slate: multi-select picker, this project pre-checked, other projects unchecked, databases/protected never offered.
+- [x] **8.4** Live env watcher on file save for newly referenced keys (Pro, opt-in). Per-file check, debounced, one toast per key, status-bar badge.
+- [x] **8.5** Encrypted `.env` snapshots (AES-256-GCM, key in secret storage) at startup, around saves and before EnvWizard edits; restore with an in-memory diff preview (Pro, opt-in). Disclosed in PRIVACY.md.
+- [x] **8.6** `.env.example` generator (never values; appends to an existing file) and value hints (Free).
+- [x] **8.7** Multi-root workspace env audits: folder picker in the Dev Deck.
+- [x] **8.8** Windows: real polite shutdown (Ctrl+C to the owning terminal or `GenerateConsoleCtrlEvent`).
+- [x] ~~**8.9** Enforce the 3-machine license limit~~: dropped (personal license, honour system).
+- [x] ~~**8.10** Port router (F6)~~: deferred to a later version; removed from settings and copy.
+- [ ] **8.11** Launch: ✅ CLAIMS.md §4 → README/site/Gumroad/media kit; ✅ 0.2.0 packaged and checked. Owner: GitHub CI, publish, tag, re-open Pro sales, deploy site (see `HANDOFF.md` §1).

@@ -1,6 +1,6 @@
 # 🛍️ EnvWizard: Gumroad Listing & Fulfillment Kit
 
-> **⏸ Do not publish yet.** Pro sales are on hold until v0.2 ships the Pro features (see [`CLAIMS.md`](CLAIMS.md)). This is the ready-to-paste listing for launch day. Before pasting, re-check that every Pro bullet below has actually shipped in the published version; remove any that haven't.
+> **Publish when 0.2.0 is live on both registries** (see [`CLAIMS.md`](CLAIMS.md)). Every Pro bullet below shipped and is tested in 0.2.0. The port router was moved to a later version and is deliberately not listed.
 
 ---
 
@@ -35,12 +35,11 @@ EnvWizard (free) shows what's holding your dev ports, frees them safely in one c
 
 **Pro adds the hands-free extras:**
 
-- 🚦 **Auto-unjam & rerun**: when `npm run dev` fails because an old copy of the *same project* still holds the port, EnvWizard frees it and reruns your command. Opt-in, and it never touches other projects, databases, Docker or your editor.
-- 🧩 **Live .env watcher**: the moment you (or your AI assistant) save code that uses a new env variable, EnvWizard tells you it's missing and offers to add it.
-- 🔐 **Encrypted .env snapshots**: a local, encrypted copy of your `.env` before every change, with 1-click restore.
-- 🔀 **Port router**: run this project on another port when the usual one belongs to a different project.
+- 🚦 **Auto-unjam & rerun**: when `npm run dev` fails because an old copy of the *same project* still holds the port, EnvWizard frees it and reruns your command without asking. It never touches other projects, databases, Docker or your editor, and asks instead if the same port jams again within a minute. Needs terminal shell integration (VS Code's default for PowerShell, bash, zsh and fish).
+- 🧩 **Live .env watcher**: when you (or your AI assistant) save code that uses an env variable no env file defines, EnvWizard tells you once and offers to add it.
+- 🔐 **Encrypted .env snapshots**: the last 20 versions of each env file, encrypted on your computer, with a side-by-side preview before you restore. Nothing is uploaded; snapshots can't be opened on another computer.
 
-Everything in the free version stays free.
+**Every Pro feature is off until you turn it on** in Settings. Everything in the free version stays free.
 
 ---
 
@@ -57,6 +56,7 @@ Everything runs locally. Your code, ports and `.env` values never leave your mac
 1. Install **EnvWizard** from the VS Code Marketplace (or Open VSX for Cursor / Antigravity).
 2. Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) → **EnvWizard: Activate Pro License**.
 3. Paste the license key from your receipt.
+4. Turn on the Pro features you want in Settings (search "envwizard").
 
 Support is best-effort via GitHub issues or support@taqnik.in.
 ```
@@ -87,6 +87,7 @@ HOW TO ACTIVATE IN VS CODE / CURSOR / ANTIGRAVITY:
 1. Open the Command Palette: Ctrl+Shift+P (Windows/Linux) or Cmd+Shift+P (Mac).
 2. Run: EnvWizard: Activate Pro License
 3. Paste your license key and press Enter. (Activation needs internet once; Pro then works offline.)
+4. Turn on the Pro features you want: Settings → search "envwizard" (Auto Unjam, Env Watcher, Snapshots).
 
 It's a personal license: use it on all your own machines.
 

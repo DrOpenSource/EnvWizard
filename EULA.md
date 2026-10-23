@@ -32,9 +32,10 @@ You agree that you will not, nor permit any third party to:
 
 ## 3. Privacy & Data Security
 
-EnvWizard operates **100% locally on your machine**.
-- The Software does not transmit, store, or monitor your environment secrets, passwords, or API keys over the network.
-- License validation is performed securely and cached locally in your editor's native secret storage.
+EnvWizard runs locally on your machine. The only network request is a one-time license check with Gumroad when you activate Pro.
+- The Software does not transmit your code, ports, environment secrets, passwords or API keys over the network.
+- Your license key is checked once with Gumroad at activation, then kept in your editor's native secret storage.
+- If you turn on encrypted `.env` snapshots (Pro), encrypted copies of your env files are kept in the extension's local storage on your computer and are never uploaded.
 - Full details are available in our [Privacy Policy](PRIVACY.md).
 
 ---

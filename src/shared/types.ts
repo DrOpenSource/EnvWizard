@@ -59,6 +59,8 @@ export interface EnvAuditReport {
   notGitignored: string[];
   /** Secret env files git already tracks: .gitignore alone won't stop them being committed. */
   trackedByGit: string[];
+  /** Soft hints about values that look wrong (doubled quotes, a URL that isn't one). Never the values themselves. */
+  valueHints: { key: string; file: string; hint: string }[];
 }
 
 export type LicenseTier = 'free' | 'pro_lifetime';

@@ -2,7 +2,7 @@
   "name": "envwizard",
   "displayName": "EnvWizard",
   "description": "Port unjammer & .env checker for vibe coders. See what is holding port 3000, free it safely in one click, and find env variables your code needs but your .env is missing.",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "publisher": "dr-opensource",
   "license": "MIT",
   "icon": "assets/icon.png",
@@ -15,7 +15,7 @@
   },
   "homepage": "https://envwizard.taqnik.in",
   "engines": {
-    "vscode": "^1.90.0"
+    "vscode": "^1.93.0"
   },
   "categories": [
     "Other",
@@ -57,13 +57,23 @@
         "category": "EnvWizard"
       },
       {
+        "command": "envwizard.generateEnvExample",
+        "title": "EnvWizard: Create or Update .env.example",
+        "category": "EnvWizard"
+      },
+      {
+        "command": "envwizard.restoreSnapshot",
+        "title": "EnvWizard: Restore .env Snapshot…",
+        "category": "EnvWizard"
+      },
+      {
         "command": "envwizard.activateLicense",
         "title": "EnvWizard: Activate Pro License",
         "category": "EnvWizard"
       },
       {
         "command": "envwizard.buyLicense",
-        "title": "EnvWizard: About EnvWizard Pro (coming in v0.2)",
+        "title": "EnvWizard: About EnvWizard Pro ($9.99 once)",
         "category": "EnvWizard"
       }
     ],
@@ -117,6 +127,26 @@
           "minimum": 2,
           "default": 5,
           "description": "How often (in seconds) the status bar checks the watched ports."
+        },
+        "envwizard.terminalDetection": {
+          "type": "boolean",
+          "default": true,
+          "description": "Watch terminal commands and offer 1-click unjam when a dev server hits a port-in-use error."
+        },
+        "envwizard.autoUnjam": {
+          "type": "boolean",
+          "default": false,
+          "description": "(Pro) Automatically free port jams caused by previous runs of this project without asking."
+        },
+        "envwizard.envWatcher": {
+          "type": "boolean",
+          "default": false,
+          "description": "(Pro) When you save a code file that uses an env variable no env file defines, tell me and offer to add it."
+        },
+        "envwizard.snapshots": {
+          "type": "boolean",
+          "default": false,
+          "description": "(Pro) Keep encrypted local snapshots of .env files (at startup, around saves and before EnvWizard edits them) and restore them with EnvWizard: Restore .env Snapshot."
         }
       }
     }
@@ -128,11 +158,13 @@
     "deploy:site": "npm run build:site && npx wrangler deploy",
     "watch": "node esbuild.config.mjs --watch",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:integration": "npm run build && node test/integration/run.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.13.0",
-    "@types/vscode": "^1.90.0",
+    "@types/vscode": "^1.93.0",
+    "@vscode/test-electron": "^3.1.0",
     "esbuild": "^0.25.0",
     "typescript": "^5.7.3",
     "vitest": "^3.0.5"

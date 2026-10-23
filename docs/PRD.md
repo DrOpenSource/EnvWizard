@@ -162,7 +162,7 @@ EnvWizard strips away cryptic terminal jargon and replaces it with intuitive dev
 | **Auto-unjam & rerun** (hands-free, opt-in) | Manual click | ✅ | v0.2 |
 | **Live `.env` watcher on save** | Manual refresh | ✅ | v0.2 |
 | **Encrypted `.env` snapshots + restore** | ❌ | ✅ | v0.2 |
-| **Port router** (run on another port) | ❌ | ✅ | v0.2 (stretch) |
+| **Port router** (run on another port) | ❌ | ✅ | later (deferred from v0.2) |
 | Docker / database container health | ❌ | ❌ | Not planned |
 | License | — | Personal license, all your own machines, never expires, 30-day refunds | Decided 2026-10-22 |
 

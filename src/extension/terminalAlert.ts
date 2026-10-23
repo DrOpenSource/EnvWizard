@@ -372,18 +372,25 @@ export class TerminalJamAlerts implements vscode.Disposable {
     const freed = freedPort !== undefined ? `✨ Port ${freedPort} is free. ` : '';
     const { value, confidence } = execution.commandLine;
     const ended = this.ended.has(execution) || (await this.waitForEnd(execution, 3000));
-    if (
-      !ended ||
-      !value.trim() ||
-      confidence === vscode.TerminalShellExecutionCommandLineConfidence.Low ||
-      !terminal.shellIntegration ||
-      terminal.exitStatus
-    ) {
+    const shell = terminal.shellIntegration;
+    const skipReason = !ended
+      ? 'the failed command was still running'
+      : !value.trim()
+        ? 'the command line is empty'
+        : confidence === vscode.TerminalShellExecutionCommandLineConfidence.Low
+          ? "the shell didn't report the exact command line"
+          : !shell
+            ? 'the terminal has no shell integration'
+            : terminal.exitStatus
+              ? 'the terminal was closed'
+              : undefined;
+    if (skipReason || !shell) {
+      this.deps.log?.(`Didn't rerun \`${value}\` automatically: ${skipReason}.`);
       vscode.window.showInformationMessage(`${freed}Press ↑ and Enter in the terminal to run it again.`);
       return false;
     }
     terminal.show(true);
-    terminal.shellIntegration.executeCommand(value);
+    shell.executeCommand(value);
     if (!quiet) vscode.window.showInformationMessage(`${freed}Running \`${value}\` again.`);
     return true;
   }

@@ -113,6 +113,32 @@ async function waitFor(check, ms, what) {
   throw new Error(`Timed out after ${ms}ms: ${what}`);
 }
 
+/** Resolves with the outcome of the next jam on `port` only, so a late event from another test can't leak in. */
+function jamHandledOn(terminalAlerts, port) {
+  return new Promise((resolve) => {
+    const sub = terminalAlerts.onDidHandleJam((outcome, jam) => {
+      if (jam.port !== port) return;
+      sub.dispose();
+      resolve(outcome);
+    });
+  });
+}
+
+/** Collects EnvWizard's output-channel lines while a test runs; call the result to stop and read them. */
+function captureLog(terminalAlerts) {
+  const deps = terminalAlerts.deps;
+  const original = deps.log;
+  const lines = [];
+  deps.log = (line) => {
+    lines.push(line);
+    if (original) original(line);
+  };
+  return () => {
+    deps.log = original;
+    return lines.join(' / ');
+  };
+}
+
 // Sprint 2 gate (F1): a jam in the terminal → toast "Free & Rerun" → the rerun binds the port.
 test('terminal jam: Free & Rerun frees the port and the rerun binds it', async () => {
   const port = 39872;
@@ -132,13 +158,14 @@ test('terminal jam: Free & Rerun frees the port and the rerun binds it', async (
       alerts.push(alert);
       return 'Free & Rerun';
     };
-    const outcome = new Promise((resolve) => {
-      const sub = terminalAlerts.onDidHandleJam((o) => (sub.dispose(), resolve(o)));
-    });
+    const outcome = jamHandledOn(terminalAlerts, port);
+    const stopLog = captureLog(terminalAlerts);
 
     shellIntegration.executeCommand(`node -e "require('http').createServer().listen(${port})"`);
 
-    assert.equal(await withTimeout(outcome, 45000, 'jam handled'), 'freed-rerun');
+    const result = await withTimeout(outcome, 45000, 'jam handled');
+    const log = stopLog();
+    assert.equal(result, 'freed-rerun', `log: ${log}`);
     assert.match(alerts[0].message, new RegExp(`Port ${port} jam`));
     await withTimeout(blockerExited, 10000, 'blocker stopped');
     // The rerun in the terminal now holds the port
@@ -180,18 +207,18 @@ test('auto-unjam: an old copy of this project is freed and rerun without asking'
     await waitFor(() => canConnect(port), 10000, 'blocker listening');
     terminal.show();
     const shellIntegration = await waitForShellIntegration(terminal);
-    const outcome = new Promise((resolve) => {
-      const sub = terminalAlerts.onDidHandleJam((o) => (sub.dispose(), resolve(o)));
-    });
+    const outcome = jamHandledOn(terminalAlerts, port);
+    const stopLog = captureLog(terminalAlerts);
 
     shellIntegration.executeCommand(`node server.js ${port}`);
 
     // On failure, say which safety condition didn't hold (ownership is in the toast text)
     const result = await withTimeout(outcome, 45000, 'jam handled');
+    const log = stopLog();
     assert.equal(
       result,
       'freed-rerun',
-      `toast: "${toastText}" | workspace: ${folder} | terminal cwd: ${shellIntegration.cwd && shellIntegration.cwd.fsPath}`
+      `toast: "${toastText}" | workspace: ${folder} | terminal cwd: ${shellIntegration.cwd && shellIntegration.cwd.fsPath} | log: ${log}`
     );
     assert.equal(toastShown, false, 'auto-unjam should not ask');
     await withTimeout(blockerExited, 10000, 'blocker stopped');

@@ -16,11 +16,11 @@
 | **`v0.2` branch** | **0.2.0 complete and packaged** (`envwizard-0.2.0.vsix`, identity checked, installs). All sprints done; F6 port router deferred to a later version. Not pushed, merged, tagged or published yet |
 | **Pro sales** | On hold. Re-open when 0.2.0 is live on both registries (`GUMROAD_KIT.md`). No licenses sold. |
 | **Website (live)** | ⚠️ **Stale pre-0.1.3 build** (checked 2026-10-23): "Buy Pro for $9.99" buttons, "100% offline", "auto-heals on file save". It advertises features the published versions don't have. |
-| **CI** | Unit tests on Windows/macOS/Ubuntu were green at 0.1.3. The v0.2 work has **not run on GitHub CI yet** (not pushed); the integration job runs on PRs to `main`. |
+| **CI** | **Green on Windows, macOS and Ubuntu** (unit + integration) for 0.2.0, via PR #1 (2026-10-23). |
 
 ### Owner's launch steps (in this order)
 1. **Today, independent of 0.2.0:** fix the live site. Either pause the Gumroad product, or deploy the honest 0.1.3 site from `main` (`git checkout main && npm run deploy:site`). Check `assets/gumroad_cover.jpg` before it is used again.
-2. Push `v0.2` and open a PR to `main`: CI runs unit tests (3 OSes) and the integration suite (3 OSes). Fix anything red. Watch for the once-seen terminal-test flake (§6).
+2. ✅ Done 2026-10-23: PR #1 green on 3 OSes, merged, tagged `v0.2.0`, GitHub release with the VSIX.
 3. Optional but recommended: try the VSIX by hand in Cursor (not installed on the dev machine, so never tested there).
 4. Merge to `main`, then publish (versions checked 2026-10-23: Marketplace 0.1.1, Open VSX 0.1.2, so 0.2.0 is valid; re-check if time has passed):
    ```
@@ -102,6 +102,11 @@ Effort estimates are in **working sessions** (one focused session ≈ what was d
 2. After launch: watch GitHub issues for terminal-alert reports from shells/editors we couldn't test (Cursor, macOS/Linux shells by hand, cmd.exe users who get nothing).
 3. Candidates for 0.3 (not promised anywhere): F6 port router; confirm CRA/Rails/Bun/Go messages with real runs; faster process inspection on Windows (PowerShell makes a jam toast take ~2 s); a snapshot export/import so snapshots survive a new computer.
 
+### Findings from GitHub CI (2026-10-23)
+- **Real bug fixed:** on Windows the same folder can be spelled with an 8.3 short name (`C:\Users\RUNNER~1`) or the long name (`runneradmin`). Auto-unjam's "command ran inside the workspace" check refused. `isPathInside` now also compares real paths (long names, junctions, symlinks).
+- **macOS CI couldn't launch VS Code 1.110+** (`Contents/MacOS/Electron` was renamed). Fixed by `@vscode/test-electron` 3.1.0, which needs Node 22+.
+- When a rerun is skipped, the reason now goes to the EnvWizard output panel (command still running, no shell integration, uncertain command line…).
+
 ### Findings from Sprint 5 (2026-10-23)
 - **F7:** `core/EnvTemplate.ts` (`buildEnvExample`, `findValueHints`) and `extension/envExample.ts`. An existing `.env.example` is only appended to, never rewritten. Hints never include values. Spaces around *unquoted* values aren't flagged, because dotenv trims them.
 - **Multi-root:** the Dev Deck's folder picker passes the folder to `auditEnv` / `generateEnvExample` as a command argument.
@@ -122,7 +127,7 @@ Effort estimates are in **working sessions** (one focused session ≈ what was d
 - On Windows "this project" comes from paths in the holder's command line (cwd isn't readable); proven by the auto-unjam integration test (`node server.js` started in the workspace).
 - Details of every automatic action go to the **EnvWizard** Output channel.
 - F3: Clean Slate is now a multi-select QuickPick (`buildCleanSlatePicks` in `actions.ts`). Databases/protected programs aren't pickable; they're named in the placeholder.
-- **Flaky once, cause unknown:** one integration run failed both terminal tests; 6 runs before and after passed, including runs straight after `npm test`. Watch CI; if it recurs, capture the assertion output.
+- ~~Flaky once, cause unknown~~ **Explained by CI:** an earlier test's jam was still being handled when the next test began, so its toast reached the next test's stand-in. Tests now wait for their own jam and only answer toasts for their own port.
 - The auto-unjam integration test sets `terminalAlerts.deps.isAutoUnjamEnabled` directly (a Pro license can't be activated in tests).
 
 ### Findings from Sprint 2 (2026-10-22)

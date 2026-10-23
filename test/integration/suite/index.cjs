@@ -40,6 +40,12 @@ test('terminal shell integration exposes a port-in-use error from a user command
   const port = 39871;
   const blocker = http.createServer().listen(port);
   const terminal = vscode.window.createTerminal({ name: 'EnvWizard jam test' });
+  // EnvWizard reacts to this jam too. Dismiss its toast and wait for it to finish, so its
+  // handling can't leak into the next test on a slow machine.
+  const { terminalAlerts } = vscode.extensions.getExtension('dr-opensource.envwizard').exports;
+  const originalChoose = terminalAlerts.chooseAction;
+  terminalAlerts.chooseAction = async () => undefined;
+  const handled = jamHandledOn(terminalAlerts, port);
 
   try {
     terminal.show();
@@ -74,7 +80,9 @@ test('terminal shell integration exposes a port-in-use error from a user command
 
     assert.match(result.text, new RegExp(`EADDRINUSE[^\\n]*${port}`), `no EADDRINUSE in output:\n${result.text}`);
     assert.match(result.commandLine, /listen/);
+    await withTimeout(handled, 30000, 'EnvWizard finished handling the jam');
   } finally {
+    terminalAlerts.chooseAction = originalChoose;
     terminal.dispose();
     blocker.close();
   }
@@ -155,6 +163,7 @@ test('terminal jam: Free & Rerun frees the port and the rerun binds it', async (
     const shellIntegration = await waitForShellIntegration(terminal);
 
     terminalAlerts.chooseAction = async (alert) => {
+      if (!alert.message.includes(`Port ${port} `)) return undefined; // Not this test's jam
       alerts.push(alert);
       return 'Free & Rerun';
     };
@@ -200,6 +209,7 @@ test('auto-unjam: an old copy of this project is freed and rerun without asking'
     deps.isAutoUnjamEnabled = async () => true;
     let toastText = '';
     terminalAlerts.chooseAction = async (alert) => {
+      if (!alert.message.includes(`Port ${port} `)) return undefined; // Not this test's jam
       toastShown = true;
       toastText = alert.message;
       return undefined;

@@ -53,15 +53,42 @@ export function isPathInside(
   if (!candidatePath || !parentFolder) return false;
 
   const platform = platformOverride || os.platform();
+  if (isInsideNormalized(candidatePath, parentFolder, platform)) return true;
+
+  // The same folder can be spelled differently: Windows 8.3 short names (C:\Users\RUNNER~1 vs
+  // C:\Users\runneradmin), symlinks and junctions (/var vs /private/var on macOS). Compare the
+  // real paths of whatever exists on this machine.
+  if (platform !== os.platform()) return false;
+  const realCandidate = realPathOf(candidatePath);
+  const realParent = realPathOf(parentFolder);
+  if (realCandidate === candidatePath && realParent === parentFolder) return false;
+  return isInsideNormalized(realCandidate, realParent, platform);
+}
+
+function isInsideNormalized(candidatePath: string, parentFolder: string, platform: NodeJS.Platform): boolean {
   const normCandidate = normalizePathForComparison(candidatePath, platform);
   const normParent = normalizePathForComparison(parentFolder, platform);
-
-  if (normCandidate === normParent) {
-    return true;
-  }
-
+  if (normCandidate === normParent) return true;
   const prefix = normParent.endsWith('/') ? normParent : normParent + '/';
   return normCandidate.startsWith(prefix);
+}
+
+/** Canonical path (long names, links resolved) of the deepest existing part of `p`. */
+function realPathOf(p: string): string {
+  let rest = '';
+  let current = p;
+  for (let i = 0; i < 64; i++) {
+    try {
+      const real = fs.realpathSync.native(current);
+      return rest ? path.join(real, rest) : real;
+    } catch {
+      const parent = path.dirname(current);
+      if (parent === current) return p;
+      rest = rest ? path.join(path.basename(current), rest) : path.basename(current);
+      current = parent;
+    }
+  }
+  return p;
 }
 
 /**

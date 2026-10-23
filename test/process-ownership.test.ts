@@ -198,3 +198,42 @@ describe('ProcessOwnership', () => {
     });
   });
 });
+
+describe('isPathInside with differently spelled real paths', () => {
+  const fs = require('node:fs') as typeof import('node:fs');
+  const os = require('node:os') as typeof import('node:os');
+  const path = require('node:path') as typeof import('node:path');
+  const { execSync } = require('node:child_process') as typeof import('node:child_process');
+
+  it('matches a folder reached through a junction / symlink', () => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'envwizard-link-'));
+    try {
+      const real = path.join(tmp, 'project');
+      fs.mkdirSync(path.join(real, 'src'), { recursive: true });
+      const link = path.join(tmp, 'link');
+      fs.symlinkSync(real, link, 'junction');
+      expect(isPathInside(path.join(link, 'src'), real)).toBe(true);
+      expect(isPathInside(path.join(real, 'src', 'not-yet-created.js'), link)).toBe(true);
+      expect(isPathInside(path.join(tmp, 'elsewhere'), link)).toBe(false);
+    } finally {
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+
+  it.runIf(process.platform === 'win32')('matches Windows 8.3 short names (RUNNER~1 vs runneradmin)', (ctx) => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'envwizard-short-'));
+    try {
+      const long = path.join(tmp, 'a very long project folder name');
+      fs.mkdirSync(long);
+      const short = execSync(`cmd /c for %I in ("${long}") do @echo %~sI`, { encoding: 'utf8' }).trim();
+      if (short.toLowerCase() === long.toLowerCase()) {
+        ctx.skip(); // 8.3 names are turned off on this volume
+        return;
+      }
+      expect(isPathInside(long, short)).toBe(true);
+      expect(isPathInside(short, long)).toBe(true);
+    } finally {
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+});

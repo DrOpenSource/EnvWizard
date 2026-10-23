@@ -171,8 +171,10 @@ test('auto-unjam: an old copy of this project is freed and rerun without asking'
 
   try {
     deps.isAutoUnjamEnabled = async () => true;
-    terminalAlerts.chooseAction = async () => {
+    let toastText = '';
+    terminalAlerts.chooseAction = async (alert) => {
       toastShown = true;
+      toastText = alert.message;
       return undefined;
     };
     await waitFor(() => canConnect(port), 10000, 'blocker listening');
@@ -184,7 +186,13 @@ test('auto-unjam: an old copy of this project is freed and rerun without asking'
 
     shellIntegration.executeCommand(`node server.js ${port}`);
 
-    assert.equal(await withTimeout(outcome, 45000, 'jam handled'), 'freed-rerun');
+    // On failure, say which safety condition didn't hold (ownership is in the toast text)
+    const result = await withTimeout(outcome, 45000, 'jam handled');
+    assert.equal(
+      result,
+      'freed-rerun',
+      `toast: "${toastText}" | workspace: ${folder} | terminal cwd: ${shellIntegration.cwd && shellIntegration.cwd.fsPath}`
+    );
     assert.equal(toastShown, false, 'auto-unjam should not ask');
     await withTimeout(blockerExited, 10000, 'blocker stopped');
     await waitFor(() => canConnect(port), 15000, 'rerun listening');
